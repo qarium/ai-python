@@ -1,6 +1,9 @@
 # IDE
 .idea
 
+# AI
+docs/plans
+
 # custom commands and skills
 skills/custom
 commands/custom
