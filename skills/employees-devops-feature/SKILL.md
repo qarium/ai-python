@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:devops:feature
+name: employees-devops:feature
 description: Used to support CI/CD infrastructure — auto-analysis of changes for workflow updates, execution of explicit user requests to modify CI, synchronization of devops.md with actual workflow state.
 ---
 

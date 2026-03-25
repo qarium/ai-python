@@ -5,5 +5,5 @@
 docs/plans
 
 # custom commands and skills
-skills/custom
+skills/custom-*
 commands/custom

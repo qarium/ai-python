@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:devops:onboarding
+name: employees-devops:onboarding
 description: Used when a Python project has no CI/CD infrastructure -- no .qarium/ai/employees/devops.md file. Configures GitHub Actions workflows for lint, tests, docs, publish. Reads qa.md and tech-writer.md to use their commands in CI. Writes configuration to .qarium/ai/employees/devops.md.
 ---
 

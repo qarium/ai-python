@@ -7,9 +7,9 @@ Before doing anything, determine whether the project has test infrastructure:
 1. Check if the `tests/` directory exists **and contains at least one `.py` file** (e.g., `conftest.py` or `test_*.py`)
 2. Check if `.qarium/ai/employees/qa.md` contains a `## Rules` section
 
-**Both conditions met** — invoke the `qarium:employees:qa:feature` skill and follow it from start to finish: read Rules from project rules, identify changes, run existing tests, diagnose failures, plan new tests for review, generate tests, check with linter and formatter, update Rules in project rules. If argument is `audit` — invoke feature in audit mode: cross-check qa.md against actual test and coverage state, without git diff and without running tests.
+**Both conditions met** — invoke the `employees-qa-feature` skill and follow it from start to finish: read Rules from project rules, identify changes, run existing tests, diagnose failures, plan new tests for review, generate tests, check with linter and formatter, update Rules in project rules. If argument is `audit` — invoke feature in audit mode: cross-check qa.md against actual test and coverage state, without git diff and without running tests.
 
-**At least one condition not met** — invoke the `qarium:employees:qa:onboarding` skill and follow it from start to finish: analyze the project, guide the user through stack selection, generate configuration, verify, write Rules to `.qarium/ai/employees/qa.md`. After onboarding completes, invoke the `qarium:employees:qa:feature` skill, passing the same original arguments.
+**At least one condition not met** — invoke the `employees-qa-onboarding` skill and follow it from start to finish: analyze the project, guide the user through stack selection, generate configuration, verify, write Rules to `.qarium/ai/employees/qa.md`. After onboarding completes, invoke the `employees-qa-feature` skill, passing the same original arguments.
 
 Arguments: $ARGUMENTS
 

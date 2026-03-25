@@ -21,7 +21,7 @@ skills/qarium/employees/     — skill definitions (onboarding + feature per emp
 
 ## Custom commands and skills
 
-Create your own commands and skills in `commands/custom/` and `skills/custom/`. These directories are gitignored and won't be overwritten when pulling updates.
+Create your own commands and skills in `commands/custom` and `skills/custom-*`. These directories are gitignored and won't be overwritten when pulling updates.
 
 ## Employees
 

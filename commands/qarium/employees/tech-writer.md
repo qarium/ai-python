@@ -7,9 +7,9 @@ Before doing anything, determine whether the project has documentation infrastru
 1. Check if the `docs/` directory exists **and contains at least one `.md` or `.rst` file**
 2. Check if the file `.qarium/ai/employees/tech-writer.md` exists
 
-**Both conditions met** — invoke the `qarium:employees:tech-writer:feature` skill and follow it from start to finish: check Mapping, load project configuration and mapping rules, identify changes, match against documentation, propose updates for unmapped files, present update plan, get user confirmation, read source code for accurate data, update/create pages, verify with configured build command.
+**Both conditions met** — invoke the `employees-tech-writer-feature` skill and follow it from start to finish: check Mapping, load project configuration and mapping rules, identify changes, match against documentation, propose updates for unmapped files, present update plan, get user confirmation, read source code for accurate data, update/create pages, verify with configured build command.
 
-**At least one condition not met** — invoke the `qarium:employees:tech-writer:onboarding` skill and follow it from start to finish: analyze the project, propose documentation structure, configure MkDocs, create structure, write configuration to `.qarium/ai/employees/tech-writer.md`. After onboarding completes, invoke the `qarium:employees:tech-writer:feature` skill, passing the same original arguments.
+**At least one condition not met** — invoke the `employees-tech-writer-onboarding` skill and follow it from start to finish: analyze the project, propose documentation structure, configure MkDocs, create structure, write configuration to `.qarium/ai/employees/tech-writer.md`. After onboarding completes, invoke the `employees-tech-writer-feature` skill, passing the same original arguments.
 
 Arguments: $ARGUMENTS
 

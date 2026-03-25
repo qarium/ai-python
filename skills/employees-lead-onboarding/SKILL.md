@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:lead:onboarding
+name: employees-lead:onboarding
 description: Used when a Python project has no file .qarium/ai/employees/lead.md or its sections are empty — analyzes the project and fills in the Architecture & Decisions, Project Structure, Code Patterns sections
 ---
 

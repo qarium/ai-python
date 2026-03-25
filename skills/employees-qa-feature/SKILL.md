@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:qa:feature
+name: employees-qa:feature
 description: Used when implementation is complete and tests need to be written or updated, after completing a feature or fixing a bug, when existing tests fail after code changes, or when test coverage is insufficient for modified files
 ---
 

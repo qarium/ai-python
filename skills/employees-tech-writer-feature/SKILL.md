@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:tech-writer:feature
+name: employees-tech-writer:feature
 description: Used when documentation needs to be created, updated, or verified. Includes updates after code changes, proactive code-documentation synchronization audits, and on-demand documentation creation for specific files or features.
 ---
 

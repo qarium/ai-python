@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:lead:feature
+name: employees-lead:feature
 description: Used when the user wants to save technical knowledge, decisions, and patterns from the current conversation to .qarium/ai/employees/lead.md for accumulating project experience across sessions
 ---
 

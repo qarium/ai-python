@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:qa:onboarding
+name: employees-qa:onboarding
 description: Used when a Python project has no test infrastructure — no tests/ directory, no Rules section in .qarium/ai/employees/qa.md. Configures pytest + ruff, configures pyproject.toml, creates test structure, and writes all sections to qa.md.
 ---
 

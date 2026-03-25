@@ -1,5 +1,5 @@
 ---
-name: qarium:employees:tech-writer:onboarding
+name: employees-tech-writer:onboarding
 description: Used when a Python project has no documentation infrastructure — no docs/ directory with content, no .qarium/ai/employees/tech-writer.md file. Sets up MkDocs, creates documentation structure, and records configuration in .qarium/ai/employees/tech-writer.md.
 ---
 
