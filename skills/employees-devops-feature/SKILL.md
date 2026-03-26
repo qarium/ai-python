@@ -345,6 +345,14 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 | strictacode in optional-dependencies + no strictacode workflow | **missing** -- strictacode workflow needed |
 | strictacode workflow exists + no `.strictacode.yml`           | **missing** -- config file needed          |
 
+**Conventions checks:**
+
+1. Read `### Conventions` from `.qarium/ai/employees/devops.md`
+2. If Conventions is empty — include in the audit report with status **missing**
+3. For each convention, scan `.github/workflows/*.yml` for evidence:
+   - `stale` — convention describes a CI pattern no longer used (e.g., "all jobs use ubuntu-latest" but some jobs now use windows-latest)
+   - `ok` — convention is followed across all workflows
+
 ### Audit report
 
 Generate a table:
@@ -396,6 +404,7 @@ Generate a table:
 | Running `pip`/`python` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Forgetting to create `.strictacode.yml` alongside workflow | Always check for `.strictacode.yml` when creating strictacode workflow                  |
 | Adding generic CI best practices as Conventions                           | Only add project-specific CI patterns that an AI agent would not know from general knowledge |
+| Skipping Conventions audit                                                   | Always check that existing Conventions are still followed in workflows during Phase 7 audit |
 
 ## Phase 8: Retrospective
 

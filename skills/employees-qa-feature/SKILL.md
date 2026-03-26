@@ -288,6 +288,8 @@ Check for signals indicating rule updates are needed:
 | Non-standard mocking pattern applied      | Suggest adding to table                                          | Mock Patterns |
 | Mocking pattern no longer used in tests   | Suggest `remove`                                                 | Mock Patterns |
 | Convention detected in existing tests     | Suggest adding                                                   | Conventions   |
+| Project has `[project.scripts]` but no CLI Testing subsection | Suggest creating CLI Testing | CLI Testing |
+| Entry point module from CLI Testing no longer exists | Suggest updating CLI Testing | CLI Testing |
 
 ### Conventions significance filter
 
@@ -430,6 +432,12 @@ Used when the user asks to check qa.md for discrepancies with the actual state o
 4. `stale` — test location directory does not exist
 5. `missing` — project has `[project.scripts]` in pyproject.toml but no CLI Testing subsection
 
+**Conventions checks:**
+
+1. For each convention in `### Conventions`, scan `tests/` for evidence that the convention is still followed
+2. `stale` — convention describes a pattern no longer used in tests (e.g., "never mock open" but tests now mock open)
+3. `ok` — convention is followed in tests
+
 **qa.md format checks:**
 
 | Check                                   | Status on discrepancy |
@@ -537,6 +545,8 @@ Generate the table:
 | Skipping Config validation during Rule update                            | Always check that Config commands still work when updating Rules                                                                                     |
 | Skipping CLI Testing audit for CLI projects                              | Always audit CLI Testing subsection if it exists; check for missing subsection in CLI projects                                                              |
 | Checking only Config key presence, not values during audit               | Always run Config commands and verify they work; report broken commands as **inaccurate**                                                                |
+| Not detecting CLI Testing subsection when project becomes CLI            | Always check `[project.scripts]` in pyproject.toml against CLI Testing subsection during Rule update and audit                                   |
+| Skipping Conventions audit                                                 | Always check that existing Conventions are still followed in tests; report stale conventions                                                             |
 
 ## Phase 9: Retrospective
 

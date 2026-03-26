@@ -460,6 +460,16 @@ Check the integrity of the custom MkDocs Material theme:
    - Styles for `[data-md-color-scheme=slate] .md-nav__link`, `.md-toc__link`, `article a` — readable links in dark theme
 3. If files are missing or corrupted — include in the audit report with status **missing** or **stale**
 
+### Conventions audit
+
+Check whether existing Conventions are still followed in the documentation:
+
+1. Read `### Conventions` from `.qarium/ai/employees/tech-writer.md`
+2. If Conventions is empty — include in the audit report with status **missing**
+3. For each convention, scan `docs/` for evidence:
+   - `stale` — convention describes a style pattern no longer used (e.g., "use first person" but docs use second person)
+   - `ok` — convention is followed in documentation
+
 ## Common mistakes
 
 | Mistake                                                                  | Fix                                                                 |
@@ -488,6 +498,7 @@ Check the integrity of the custom MkDocs Material theme:
 | Running `mkdocs` without virtualenv activation                          | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
 | Never updating Conventions after documentation work                         | Always check for new conventions after Phase 8 validation and suggest them to the user |
 | Never refreshing tech-writer.md Config after branch changes                   | Always check `base_branch` against the actual default branch during Phase 8 validation     |
+| Skipping Conventions audit                                                   | Always check that existing Conventions are still followed in docs during Phase 9 audit     |
 
 ## Phase 10: Retrospective
 
