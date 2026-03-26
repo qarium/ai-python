@@ -236,6 +236,7 @@ Update the Workflow Registry in `.qarium/ai/employees/devops.md` to match the ac
 | Trigger changed       | Update Trigger column |
 | Purpose changed       | Update Purpose column |
 | Conventions outdated  | Update Conventions    |
+| CI pattern used across workflows but not in Conventions | Suggest adding to Conventions |
 | `trigger_branch` in Config differs from actual default branch | Update `trigger_branch` in Config to match |
 
 ### Presentation for review
@@ -255,8 +256,34 @@ Wait for user approval. Record only approved changes.
 1. **add** — add new rows to the Workflow Registry
 2. **modify** — update existing rows
 3. **remove** — delete rows corresponding to deleted workflows
-4. Do not modify Config and other sections of devops.md
+4. Do not add or remove Config keys. Do not modify other sections of devops.md.
 5. Verify that `trigger_branch` in Config matches the actual project default branch (determined from `.qarium/ai/employees/lead.md` Config or `git symbolic-ref refs/remotes/origin/HEAD`). If they differ — present an update in the review table with action `modify`.
+
+### Conventions update
+
+When adding new conventions or updating existing ones:
+
+**What qualifies as a CI convention:**
+- A trigger pattern used consistently across workflows (e.g., "all workflows use push+PR to default_branch")
+- An action version pinning strategy (e.g., "always pin to major version @vN")
+- A matrix configuration pattern (e.g., "tests matrix excludes pre-release versions")
+- A job-level pattern (e.g., "all jobs use ubuntu-latest")
+
+**Significance filter:**
+
+**Add if:**
+- The convention would prevent an inconsistency in a future CI modification session
+- The convention is specific to this project's CI setup
+- An AI agent would create a workflow that violates this convention without this knowledge
+
+**Skip if:**
+- The convention is a GitHub Actions best practice (e.g., "use actions/checkout")
+- The convention is already captured in the Workflow Registry
+- The convention describes a one-time workaround with no long-term relevance
+
+**Format:** `- <convention description>` (one line per convention)
+
+Present Conventions changes in the review table alongside Workflow Registry updates.
 
 ### Summary and optimization
 
@@ -368,6 +395,7 @@ Generate a table:
 | Ignoring orphan workflows during audit                             | Always suggest adding them to the Workflow Registry                                      |
 | Running `pip`/`python` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Forgetting to create `.strictacode.yml` alongside workflow | Always check for `.strictacode.yml` when creating strictacode workflow                  |
+| Adding generic CI best practices as Conventions                           | Only add project-specific CI patterns that an AI agent would not know from general knowledge |
 
 ## Phase 8: Retrospective
 

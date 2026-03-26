@@ -361,6 +361,34 @@ Run the validation sequence:
    - On build error — fix and rerun
    - If after 2 iterations the build still fails — explain the remaining problem and wait for user instructions
 2. Check all changed documentation files for consistency with source code (always performed)
+3. **Conventions update** — if documentation updates in this session revealed a consistent style choice not yet in Conventions, present it to the user:
+
+   **Signals to look for:**
+   - A formatting choice was made that differs from the default style
+   - A specific heading structure, list style, or table format was consistently applied
+   - The user corrected a style choice during review
+
+   **Significance filter:**
+
+   **Suggest if:**
+   - The convention would prevent a style inconsistency in a future session
+   - The convention is specific to this project (not universal writing advice)
+   - An AI agent would make a different style choice without this knowledge
+
+   **Skip if:**
+   - The convention is already captured in the existing Conventions list
+   - The convention is a universal best practice
+   - The convention was applied only once and may not recur
+
+   If the user approves — add to `### Conventions` in `.qarium/ai/employees/tech-writer.md`. Follow the same optimization rules as Mapping (merge duplicates, remove stale, size limit).
+4. **Config updates** — check if Config values still match the actual project state. Do not add or remove Config keys.
+
+   | Check                                                    | Source                                 | Action                                        |
+   |----------------------------------------------------------|----------------------------------------|-----------------------------------------------|
+   | `base_branch` matches the actual default branch           | Read `default_branch` from lead.md Config or `git symbolic-ref` | If differs — update `base_branch` in Config  |
+   | `build_cmd` works                                         | Already verified in step 1             | If it failed — suggest updating the command    |
+
+   Present Config updates alongside Conventions updates. Wait for user approval.
 
 ## Phase 9: Audit (proactive mode)
 
@@ -458,6 +486,8 @@ Check the integrity of the custom MkDocs Material theme:
 | Deleting or overwriting `docs/overrides/main.html` during updates        | Do not touch overrides when updating documentation                  |
 | Using hardcoded `main` as default base reference                        | Always determine from tech-writer.md Config, lead.md Config, or git; fallback to `master` |
 | Running `mkdocs` without virtualenv activation                          | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
+| Never updating Conventions after documentation work                         | Always check for new conventions after Phase 8 validation and suggest them to the user |
+| Never refreshing tech-writer.md Config after branch changes                   | Always check `base_branch` against the actual default branch during Phase 8 validation     |
 
 ## Phase 10: Retrospective
 

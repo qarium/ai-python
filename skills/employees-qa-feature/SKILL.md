@@ -289,6 +289,22 @@ Check for signals indicating rule updates are needed:
 | Mocking pattern no longer used in tests   | Suggest `remove`                                                 | Mock Patterns |
 | Convention detected in existing tests     | Suggest adding                                                   | Conventions   |
 
+### Conventions significance filter
+
+Before suggesting a convention, apply the significance filter:
+
+**Suggest if:**
+- The convention would prevent an error in a future test-writing session
+- The convention saves time compared to discovering the pattern from scratch
+- The rationale is not obvious from reading the test code
+- An AI agent would make an incorrect decision without this knowledge
+
+**Skip if:**
+- The convention is a universal pytest best practice (e.g., "use descriptive test names")
+- The convention is already captured in another Rules subsection (Mapping, Mock Patterns, Helpers)
+- The convention duplicates an existing Conventions entry
+- The convention is a one-time workaround with no long-term relevance
+
 ### Review presentation
 
 If there are updates, present the table:
@@ -306,7 +322,19 @@ Wait for user approval. Record only approved changes.
 1. **add** — add new entries to the corresponding subsections
 2. **modify** — update existing entries with new values
 3. **remove** — remove entries that are no longer relevant
-4. Do not modify other sections of `.qarium/ai/employees/qa.md`
+4. Do not modify other sections of `.qarium/ai/employees/qa.md` (Config is handled in the next subsection)
+
+### Config updates
+
+Check if Config values still match the actual project state. Do not add or remove Config keys.
+
+| Check                                                | Source                                 | Action                                           |
+|------------------------------------------------------|----------------------------------------|--------------------------------------------------|
+| `run_tests_cmd` matches what pytest actually needs   | Run `pytest --collect-only` with it    | If it fails — suggest updating to the working command |
+| `lint_cmd` produces the expected output               | Run `lint_cmd` on `<source>/ tests/`   | If it fails — suggest updating to the working command |
+| `format_cmd` produces the expected output             | Run `format_cmd` on `<source>/ tests/` | If it fails — suggest updating to the working command |
+
+Present Config updates in the review table alongside Rules updates (same approval flow).
 
 ### Summary and optimization
 
@@ -394,6 +422,14 @@ Used when the user asks to check qa.md for discrepancies with the actual state o
 2. `stale` — function not found in the specified file
 3. `missing` — there is a helper function in `tests/` (called from multiple tests) but not in the table
 
+**CLI Testing checks (only if `### CLI Testing` subsection exists):**
+
+1. Check that the entry point module exists: verify `<module>` from `Entry point:` is importable
+2. Check that the test location directory exists: verify the path from `Test location:`
+3. `stale` — entry point module no longer exists or CLI Testing subsection references a deleted entry point
+4. `stale` — test location directory does not exist
+5. `missing` — project has `[project.scripts]` in pyproject.toml but no CLI Testing subsection
+
 **qa.md format checks:**
 
 | Check                                   | Status on discrepancy |
@@ -408,6 +444,18 @@ Used when the user asks to check qa.md for discrepancies with the actual state o
 | Config does not contain `format_cmd`    | **inaccurate**        |
 | Config does not contain `lint_fix_cmd`   | **inaccurate** |
 | Config does not contain `format_fix_cmd` | **inaccurate** |
+
+**Config value checks:**
+
+1. Run `run_tests_cmd` from Config and check exit code
+2. Run `lint_cmd` from Config on `<source>/ tests/` and check exit code
+3. Run `format_cmd` from Config on `<source>/ tests/` and check exit code
+
+| Check                    | Status on discrepancy             |
+|--------------------------|-----------------------------------|
+| `run_tests_cmd` fails    | **inaccurate** — command broken   |
+| `lint_cmd` fails         | **inaccurate** — command broken   |
+| `format_cmd` fails       | **inaccurate** — command broken   |
 
 **Coverage checks:**
 
@@ -485,6 +533,10 @@ Generate the table:
 | Skipping coverage check during audit                   | Always run `pytest --cov` and include results in the audit report                                                                                                    |
 | Deleting tests for existing source files during audit  | Audit only reports issues — deletions require user approval                                                                                                          |
 | Running `pytest`/`ruff` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`                                                                           |
+| Suggesting trivial or universal testing conventions                 | Apply the Conventions significance filter before suggesting                                                                                       |
+| Skipping Config validation during Rule update                            | Always check that Config commands still work when updating Rules                                                                                     |
+| Skipping CLI Testing audit for CLI projects                              | Always audit CLI Testing subsection if it exists; check for missing subsection in CLI projects                                                              |
+| Checking only Config key presence, not values during audit               | Always run Config commands and verify they work; report broken commands as **inaccurate**                                                                |
 
 ## Phase 9: Retrospective
 
