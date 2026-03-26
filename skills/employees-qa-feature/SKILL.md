@@ -85,14 +85,14 @@ This applies to all phases that run shell commands: Phase 2, Phase 3, Phase 5, P
 If the argument is `audit` — skip this phase and go to Phase 8.
 
 1. Read `.qarium/ai/employees/qa.md` and extract the **Rules** section, if it exists. This section defines project-specific test configuration.
-2. Read the **Lessons** section, if it exists. This section contains project-specific lessons learned during past sessions.
-2. Determine the **source directory** — the main package directory (e.g., `myapp/`). Look for directories with `__init__.py` in the project root, excluding `tests/`. This will be used as `<source>` in subsequent phases.
-3. Collect modified files using `git diff --name-status HEAD` (staged + unstaged + untracked). Returns statuses: `A` (added), `D` (deleted), `M` (modified), `R` (renamed). If empty, use `git diff --name-status HEAD~1`. If `HEAD~1` is unavailable (single commit or detached HEAD), list all tracked `.py` files in `<source>/`.
-4. Add untracked `.py` files: run `git ls-files --others --exclude-standard` and classify as `A` (added). This allows finding new files not yet added to the index.
-5. If the skill is invoked with a path argument, use only files at that path.
-6. Filtering: keep only `.py` files in `<source>/`. Skip configs, documentation, CI, and non-source-code files.
-7. Classify each file by status from `--name-status`: **new** (`A`), **deleted** (`D`), **renamed** (`R` — displayed as two paths: old->new), or **existing** (`M`).
-8. **Module-to-package refactoring detection** — check for the following signals:
+2. Read the **Lessons** section, if it exists — it is a top-level section in qa.md (not inside Rules). Contains project-specific lessons learned during past sessions.
+3. Determine the **source directory** — the main package directory (e.g., `myapp/`). Look for directories with `__init__.py` in the project root, excluding `tests/`. This will be used as `<source>` in subsequent phases.
+4. Collect modified files using `git diff --name-status HEAD` (staged + unstaged + untracked). Returns statuses: `A` (added), `D` (deleted), `M` (modified), `R` (renamed). If empty, use `git diff --name-status HEAD~1`. If `HEAD~1` is unavailable (single commit or detached HEAD), list all tracked `.py` files in `<source>/`.
+5. Add untracked `.py` files: run `git ls-files --others --exclude-standard` and classify as `A` (added). This allows finding new files not yet added to the index.
+6. If the skill is invoked with a path argument, use only files at that path.
+7. Filtering: keep only `.py` files in `<source>/`. Skip configs, documentation, CI, and non-source-code files.
+8. Classify each file by status from `--name-status`: **new** (`A`), **deleted** (`D`), **renamed** (`R` — displayed as two paths: old->new), or **existing** (`M`).
+9. **Module-to-package refactoring detection** — check for the following signals:
    - Source file deleted (`D`) and a new directory with the same name and `__init__.py` exists (e.g., `module.py` deleted, `module/__init__.py` added) — classify as **refactoring to package**
    - Source file renamed (`R`) from `module.py` to `module/__init__.py` — classify as **refactoring to package**
    - Source file still exists, but a new directory with the same name and `__init__.py` also exists — classify as **refactoring to package** (module kept alongside the new package)
