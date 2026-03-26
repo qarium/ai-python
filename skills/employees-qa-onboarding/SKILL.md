@@ -41,13 +41,15 @@ digraph flow {
     generate [label="Phase 3: Generation\npyproject.toml, tests/, install" shape=box];
     verify [label="Phase 4: Verification\npytest, ruff, cov" shape=box];
     rules [label="Phase 5: qa.md writing\nConfig + Rules (all sections)" shape=box];
+    retro [label="Phase 6: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Ready to use" shape=box];
 
     analyze -> config;
     config -> generate;
     generate -> verify;
     verify -> rules;
-    rules -> done;
+    rules -> retro;
+    retro -> done;
 }
 ```
 
@@ -285,3 +287,7 @@ Include the **CLI Testing** subsection only if the project type is a CLI applica
 | Skipping empty tables in qa.md                                      | Always create Mock Patterns and Helpers with empty tables — the flow will fill them later |
 | Running `pip`/`pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`   |
 | Skipping the Config section                                         | Config is always filled with commands from Phase 2                                        |
+
+## Phase 6: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

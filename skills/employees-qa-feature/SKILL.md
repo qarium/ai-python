@@ -37,6 +37,7 @@ digraph flow {
     update [label="Phase 7: Update Rules\nsync with .qarium/ai/employees/qa.md" shape=box];
     audit [label="Phase 8: Audit\ncross-check qa.md" shape=box];
     audit_fix [label="User selects fixes" shape=box];
+    retro [label="Phase 9: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Done" shape=box];
 
     mode -> detect [label="no arguments"];
@@ -55,10 +56,11 @@ digraph flow {
     verify -> clean;
     clean -> generate [label="no"];
     clean -> update [label="yes"];
-    update -> done;
+    update -> retro;
     audit -> audit_fix;
     audit_fix -> update [label="fixes selected"];
-    audit_fix -> done [label="no fixes"];
+    audit_fix -> retro [label="no fixes"];
+    retro -> done;
 }
 ```
 
@@ -482,3 +484,7 @@ Generate the table:
 | Skipping coverage check during audit                   | Always run `pytest --cov` and include results in the audit report                                                                                                    |
 | Deleting tests for existing source files during audit  | Audit only reports issues — deletions require user approval                                                                                                          |
 | Running `pytest`/`ruff` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`                                                                           |
+
+## Phase 9: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

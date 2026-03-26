@@ -39,6 +39,7 @@ digraph flow {
     summarize [label="Phase 5: Summary and optimization\nmerge, compress, remove" shape=box];
     audit [label="Phase 6: Audit\ncross-check lead.md + strictacode" shape=box];
     audit_fix [label="User selects fixes" shape=box];
+    retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Done" shape=box];
 
     start -> mode;
@@ -49,10 +50,11 @@ digraph flow {
     present -> add [label="approved"];
     present -> done [label="rejected"];
     add -> summarize;
-    summarize -> done;
+    summarize -> retro;
     audit -> audit_fix;
     audit_fix -> add [label="fixes selected"];
-    audit_fix -> done [label="no fixes"];
+    audit_fix -> retro [label="no fixes"];
+    retro -> done;
 }
 ```
 
@@ -376,3 +378,7 @@ Form a table:
 | Modifying entries during audit without approval | Audit only reports — changes require user approval                                              |
 | Skipping strictacode during audit               | Always invoke strictacode if the skill is available                                             |
 | Overwriting Config during Phase 5              | Only update `default_branch` if it has changed; do not add or remove other Config keys          |
+
+## Phase 7: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

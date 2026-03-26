@@ -46,6 +46,7 @@ digraph doc_skill {
     build [label="Phase 8: Validation\nRun build_cmd" shape=box];
     review [label="Check consistency" shape=box];
     done [label="Done" shape=box];
+    retro [label="Phase 10: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
 
     start -> mapping_check;
     mapping_check -> fill_mapping [label="empty"];
@@ -63,7 +64,7 @@ digraph doc_skill {
     confirm -> done [label="rejected"];
     audit -> audit_fix;
     audit_fix -> read_src [label="fixes selected"];
-    audit_fix -> done [label="no fixes"];
+    audit_fix -> retro [label="no fixes"];
     read_src -> new_page [label="has new pages"];
     read_src -> update [label="has updates"];
     read_src -> done [label="no changes needed"];
@@ -72,7 +73,8 @@ digraph doc_skill {
     examples -> nav;
     nav -> build;
     build -> review;
-    review -> done;
+    review -> retro;
+    retro -> done;
 }
 ```
 
@@ -454,3 +456,7 @@ Check the integrity of the custom MkDocs Material theme:
 | Deleting or overwriting `docs/overrides/main.html` during updates        | Do not touch overrides when updating documentation                  |
 | Using hardcoded `main` as default base reference                        | Always determine from tech-writer.md Config, lead.md Config, or git; fallback to `master` |
 | Running `mkdocs` without virtualenv activation                          | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
+
+## Phase 10: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

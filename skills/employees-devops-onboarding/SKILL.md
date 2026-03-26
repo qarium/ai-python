@@ -50,7 +50,9 @@ digraph flow {
     detect -> generate;
     generate -> verify;
     verify -> rules;
-    rules -> done;
+    retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
+    rules -> retro;
+    retro -> done;
 }
 ```
 
@@ -463,3 +465,7 @@ Onboarding creates CI/CD infrastructure from scratch. The onboarding skill itsel
 | Running `pip`/`python` without virtualenv activation                | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`              |
 | Overwriting existing `.strictacode.yml`                              | Check before creating -- only create if the file does not exist                                    |
 | Hardcoding `main` or `master` as trigger branch                      | Always determine from Phase 1 step 1.5 (lead.md Config or git auto-detect)                         |
+
+## Phase 7: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

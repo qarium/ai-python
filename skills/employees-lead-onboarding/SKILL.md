@@ -26,13 +26,15 @@ digraph flow {
     fill [label="Phase 2: Filling sections\nArchitecture, Structure, Patterns" shape=box];
     review [label="Phase 3: Review\nuser confirms" shape=box];
     write [label="Phase 4: Writing\n.qarium/ai/employees/lead.md" shape=box];
+    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Done" shape=box];
 
     analyze -> fill;
     fill -> review;
     review -> write [label="approved"];
     review -> done [label="rejected"];
-    write -> done;
+    write -> retro;
+    retro -> done;
 }
 ```
 
@@ -163,3 +165,7 @@ After writing, read the file back for verification.
 | Examples tied to a specific project              | Use generic examples, not from the current project    |
 | Skipping default_branch detection in Phase 1     | Always detect via git or ask the user; other roles depend on this value |
 | Forgetting to include Config in the file template | Config section must always be present in lead.md      |
+
+## Phase 5: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

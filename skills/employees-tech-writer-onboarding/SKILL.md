@@ -43,6 +43,7 @@ digraph flow {
     create [label="Phase 4: Structure creation\nmkdocs.yml, docs/, nav" shape=box];
     install [label="Phase 5: Installation and verification\npip install, build_cmd" shape=box];
     rules [label="Phase 6: Write .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
+    retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Done" shape=box];
 
     analyze -> structure;
@@ -50,7 +51,8 @@ digraph flow {
     config -> create;
     create -> install;
     install -> rules;
-    rules -> done;
+    rules -> retro;
+    retro -> done;
 }
 ```
 
@@ -373,3 +375,7 @@ Create the tech writer configuration file. The file is written in English.
 | Forgetting `custom_dir` and `primary: custom` in mkdocs.yml     | The mkdocs.yml template in Phase 4 contains these settings               |
 | Running `pip`/`mkdocs` without virtualenv activation            | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`               |
+
+## Phase 7: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.

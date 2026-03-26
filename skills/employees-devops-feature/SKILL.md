@@ -42,6 +42,7 @@ digraph flow {
     verify [label="Phase 5: Verification\nYAML, cross-reference" shape=box];
     sync [label="Phase 6: devops.md synchronization\nupdating Workflow Registry" shape=box];
     done [label="Done" shape=box];
+    retro [label="Phase 8: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
 
     trigger -> mode;
     mode -> auto [label="no arguments\n(auto-analysis)"];
@@ -59,7 +60,8 @@ digraph flow {
     approved -> done [label="rejected"];
     apply -> verify;
     verify -> sync;
-    sync -> done;
+    sync -> retro;
+    retro -> done;
 }
 ```
 
@@ -365,3 +367,7 @@ Generate a table:
 | Ignoring orphan workflows during audit                             | Always suggest adding them to the Workflow Registry                                      |
 | Running `pip`/`python` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Forgetting to create `.strictacode.yml` alongside workflow | Always check for `.strictacode.yml` when creating strictacode workflow                  |
+
+## Phase 8: Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.
