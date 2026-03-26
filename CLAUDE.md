@@ -43,5 +43,5 @@ After completing the main work of any `employees-*` skill, the skill MUST perfor
    - Get user confirmation for changes
    - Apply changes to selected SKILL.md files
    - For each modified SKILL.md: check consistency (phase sequence, digraph, contradictions). If problems found → propose fixes → back to confirmation
-   - Publish updated skills to the `.claude` git repository: stage all changes, commit with a descriptive message summarizing what was improved and why, push to the remote branch, then return to the project root
+   - Publish updated skills to the `.claude` git repository: `cd .claude`, stage all changes, commit with a descriptive message summarizing what was improved and why, push to the remote branch, then `cd ..` to return to the project root. **The working directory must always be the project root after this step.**
    - Confirm to user that skills are updated and published
