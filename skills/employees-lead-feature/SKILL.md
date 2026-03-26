@@ -15,6 +15,7 @@ Dispatch ensures that the file exists and contains populated sections before inv
 
 - If `.qarium/ai/employees/lead.md` does not exist — warn the user and suggest running `qarium:employees:lead:onboarding` first. Abort.
 - If the file exists but all sections contain only `<!-- empty -->` — suggest `qarium:employees:lead:onboarding`.
+- When reading the file, read the **Lessons** section if it exists — it contains project-specific lessons learned during past sessions.
 
 ## When to use
 

@@ -123,6 +123,8 @@ If the user declined to fill the mapping — proceed to Phase 1 with an empty ma
 
 Read `.qarium/ai/employees/tech-writer.md` and extract sections. All file content is written in English.
 
+Read the **Lessons** section, if it exists. This section contains project-specific lessons learned during past sessions.
+
 ### Config
 
 This section defines project-specific documentation settings. The format is a table:

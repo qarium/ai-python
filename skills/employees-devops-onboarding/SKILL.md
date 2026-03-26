@@ -417,6 +417,11 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 |----------|------|---------|---------|
 
 ### Conventions
+
+## Lessons
+
+| Problem | Why | How to prevent |
+|---------|-----|----------------|
 ```
 
 - Fill in Config with values from Phase 1: `ci_provider` is always `github-actions`, `trigger_branch` is the project's default branch determined in Phase 1 step 1.5, `diff_range` is `HEAD~5` by default

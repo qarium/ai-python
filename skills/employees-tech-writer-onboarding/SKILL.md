@@ -342,6 +342,11 @@ Create the tech writer configuration file. The file is written in English.
 |-------------|---------------------|
 
 ### Conventions
+
+## Lessons
+
+| Problem | Why | How to prevent |
+|---------|-----|----------------|
 ```
 
 - Fill in Config values from the user's choices in Phase 3

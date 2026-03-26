@@ -85,6 +85,7 @@ This applies to all phases that run shell commands: Phase 2, Phase 3, Phase 5, P
 If the argument is `audit` — skip this phase and go to Phase 8.
 
 1. Read `.qarium/ai/employees/qa.md` and extract the **Rules** section, if it exists. This section defines project-specific test configuration.
+2. Read the **Lessons** section, if it exists. This section contains project-specific lessons learned during past sessions.
 2. Determine the **source directory** — the main package directory (e.g., `myapp/`). Look for directories with `__init__.py` in the project root, excluding `tests/`. This will be used as `<source>` in subsequent phases.
 3. Collect modified files using `git diff --name-status HEAD` (staged + unstaged + untracked). Returns statuses: `A` (added), `D` (deleted), `M` (modified), `R` (renamed). If empty, use `git diff --name-status HEAD~1`. If `HEAD~1` is unavailable (single commit or detached HEAD), list all tracked `.py` files in `<source>/`.
 4. Add untracked `.py` files: run `git ls-files --others --exclude-standard` and classify as `A` (added). This allows finding new files not yet added to the index.

@@ -150,6 +150,11 @@ Create `.qarium/ai/employees/lead.md` with the approved contents. All file conte
 
 ## LLM Directives
 <!-- empty -->
+
+## Lessons
+
+| Problem | Why | How to prevent |
+|---------|-----|----------------|
 ```
 
 After writing, read the file back for verification.

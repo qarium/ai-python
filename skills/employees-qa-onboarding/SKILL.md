@@ -261,6 +261,11 @@ Coverage: exit codes, stdout/stderr output, flag combinations, error messages on
 - Naming: `test_<what>_<scenario>`
 - Never mock `builtins.open` — use `tmp_path` fixture
 - Integration tests use `pytest.mark.skipif` when external tools unavailable
+
+## Lessons
+
+| Problem | Why | How to prevent |
+|---------|-----|----------------|
 ```
 
 Include the **CLI Testing** subsection only if the project type is a CLI application (determined in Phase 1). For libraries and web projects, skip it.

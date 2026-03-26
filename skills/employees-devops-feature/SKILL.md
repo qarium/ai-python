@@ -87,6 +87,7 @@ This applies to any phase that executes shell commands (pip, python).
    - **Config** — `ci_provider`, `trigger_branch`, `diff_range`
    - **Rules → Workflow Registry** — table of all workflows with files, triggers and purpose
    - **Rules → Conventions** — project-specific CI patterns
+   - **Lessons** — project-specific lessons learned during past sessions
 2. Read **Config** from `.qarium/ai/employees/qa.md`:
    - `run_tests_cmd` — test run command
    - `lint_cmd` — linting command
