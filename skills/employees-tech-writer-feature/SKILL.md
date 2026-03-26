@@ -383,10 +383,10 @@ Run the validation sequence:
    If the user approves — add to `### Conventions` in `.qarium/ai/employees/tech-writer.md`. Follow the same optimization rules as Mapping (merge duplicates, remove stale, size limit).
 4. **Config updates** — check if Config values still match the actual project state. Do not add or remove Config keys.
 
-   | Check                                                    | Source                                 | Action                                        |
-   |----------------------------------------------------------|----------------------------------------|-----------------------------------------------|
-   | `base_branch` matches the actual default branch           | Read `default_branch` from lead.md Config or `git symbolic-ref` | If differs — update `base_branch` in Config  |
-   | `build_cmd` works                                         | Already verified in step 1             | If it failed — suggest updating the command    |
+   | Check                                           | Source                                                          | Action                                       |
+   |-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------------|
+   | `base_branch` matches the actual default branch | Read `default_branch` from lead.md Config or `git symbolic-ref` | If differs — update `base_branch` in Config  |
+   | `build_cmd` works                               | Already verified in step 1                                      | If it failed — suggest updating the command  |
 
    Present Config updates alongside Conventions updates. Wait for user approval.
 
@@ -472,33 +472,33 @@ Check whether existing Conventions are still followed in the documentation:
 
 ## Common mistakes
 
-| Mistake                                                                  | Fix                                                                 |
-|--------------------------------------------------------------------------|---------------------------------------------------------------------|
-| Inventing values, thresholds, or default values                          | Always read from source code                                        |
-| Changing the style of existing content                                   | Exactly match the surrounding format                                |
-| Forgetting to update navigation in mkdocs.yml                            | Always update `nav` in mkdocs.yml when creating new pages           |
-| Adding examples without context                                          | Use Context/Command/Workflow format                                 |
-| Refactoring existing documentation                                       | Update only what changed, leave the rest untouched                  |
-| Guessing default values for CLI options                                  | Read from source code or run `--help`                               |
-| Skipping build validation                                                | Always run build_cmd                                                |
-| Creating unnecessary pages                                               | Create pages only for major new features                            |
-| Ignoring deleted files                                                   | Deleted sources → remove references from documentation              |
-| Reading configuration from CLAUDE.md                                     | Read configuration only from `.qarium/ai/employees/tech-writer.md`  |
-| Not updating mapping for unmapped files                                  | Always propose mapping updates for new source files                 |
-| Assuming documentation defaults                                          | First read Config from `.qarium/ai/employees/tech-writer.md`        |
-| Skipping audit when documentation is stale                               | Run Phase 9 for systematic code-documentation discrepancy detection |
-| Skipping Summary and optimization after mapping update                   | Mapping will grow indefinitely                                      |
-| Removing mapping entries without checking source/documentation existence | Check both directories before removing entries                      |
-| Skipping Phase 0 when mapping is empty                                   | Always check mapping before proceeding to Phase 1                   |
-| Creating a page from scratch without asking about structure              | Always ask the user when creating a page from scratch               |
-| Forgetting to check README.md during audit                               | Always check README.md separately from the Mapping audit            |
-| Skipping `docs/overrides/main.html` audit                                | Always check theme overrides integrity                              |
-| Deleting or overwriting `docs/overrides/main.html` during updates        | Do not touch overrides when updating documentation                  |
-| Using hardcoded `main` as default base reference                        | Always determine from tech-writer.md Config, lead.md Config, or git; fallback to `master` |
-| Running `mkdocs` without virtualenv activation                          | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
-| Never updating Conventions after documentation work                         | Always check for new conventions after Phase 8 validation and suggest them to the user |
-| Never refreshing tech-writer.md Config after branch changes                   | Always check `base_branch` against the actual default branch during Phase 8 validation     |
-| Skipping Conventions audit                                                   | Always check that existing Conventions are still followed in docs during Phase 9 audit     |
+| Mistake                                                                  | Fix                                                                                       |
+|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Inventing values, thresholds, or default values                          | Always read from source code                                                              |
+| Changing the style of existing content                                   | Exactly match the surrounding format                                                      |
+| Forgetting to update navigation in mkdocs.yml                            | Always update `nav` in mkdocs.yml when creating new pages                                 |
+| Adding examples without context                                          | Use Context/Command/Workflow format                                                       |
+| Refactoring existing documentation                                       | Update only what changed, leave the rest untouched                                        |
+| Guessing default values for CLI options                                  | Read from source code or run `--help`                                                     |
+| Skipping build validation                                                | Always run build_cmd                                                                      |
+| Creating unnecessary pages                                               | Create pages only for major new features                                                  |
+| Ignoring deleted files                                                   | Deleted sources → remove references from documentation                                    |
+| Reading configuration from CLAUDE.md                                     | Read configuration only from `.qarium/ai/employees/tech-writer.md`                        |
+| Not updating mapping for unmapped files                                  | Always propose mapping updates for new source files                                       |
+| Assuming documentation defaults                                          | First read Config from `.qarium/ai/employees/tech-writer.md`                              |
+| Skipping audit when documentation is stale                               | Run Phase 9 for systematic code-documentation discrepancy detection                       |
+| Skipping Summary and optimization after mapping update                   | Mapping will grow indefinitely                                                            |
+| Removing mapping entries without checking source/documentation existence | Check both directories before removing entries                                            |
+| Skipping Phase 0 when mapping is empty                                   | Always check mapping before proceeding to Phase 1                                         |
+| Creating a page from scratch without asking about structure              | Always ask the user when creating a page from scratch                                     |
+| Forgetting to check README.md during audit                               | Always check README.md separately from the Mapping audit                                  |
+| Skipping `docs/overrides/main.html` audit                                | Always check theme overrides integrity                                                    |
+| Deleting or overwriting `docs/overrides/main.html` during updates        | Do not touch overrides when updating documentation                                        |
+| Using hardcoded `main` as default base reference                         | Always determine from tech-writer.md Config, lead.md Config, or git; fallback to `master` |
+| Running `mkdocs` without virtualenv activation                           | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
+| Never updating Conventions after documentation work                      | Always check for new conventions after Phase 8 validation and suggest them to the user    |
+| Never refreshing tech-writer.md Config after branch changes              | Always check `base_branch` against the actual default branch during Phase 8 validation    |
+| Skipping Conventions audit                                               | Always check that existing Conventions are still followed in docs during Phase 9 audit    |
 
 ## Phase 10: Retrospective
 

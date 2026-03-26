@@ -290,7 +290,7 @@ Include the **CLI Testing** subsection only if the project type is a CLI applica
 | Hardcoding the Python version                                       | Determine from `requires-python` in pyproject.toml                                        |
 | Choosing a function with external dependencies for the example test | Choose the simplest function without file I/O, network, or subprocesses                   |
 | Skipping empty tables in qa.md                                      | Always create Mock Patterns and Helpers with empty tables — the flow will fill them later |
-| Running `pip`/`pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`   |
+| Running `pip`/`pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
 | Skipping the Config section                                         | Config is always filled with commands from Phase 2                                        |
 
 ## Phase 6: Retrospective

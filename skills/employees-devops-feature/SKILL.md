@@ -229,25 +229,25 @@ Update the Workflow Registry in `.qarium/ai/employees/devops.md` to match the ac
 2. Scan `.github/workflows/*.yml` to get the actual list of workflows
 3. Compare the Registry with actual files:
 
-| Fact                  | Action                |
-|-----------------------|-----------------------|
-| New workflow file     | Add to Registry       |
-| Workflow file deleted | Remove from Registry  |
-| Trigger changed       | Update Trigger column |
-| Purpose changed       | Update Purpose column |
-| Conventions outdated  | Update Conventions    |
-| CI pattern used across workflows but not in Conventions | Suggest adding to Conventions |
+| Fact                                                          | Action                                     |
+|---------------------------------------------------------------|--------------------------------------------|
+| New workflow file                                             | Add to Registry                            |
+| Workflow file deleted                                         | Remove from Registry                       |
+| Trigger changed                                               | Update Trigger column                      |
+| Purpose changed                                               | Update Purpose column                      |
+| Conventions outdated                                          | Update Conventions                         |
+| CI pattern used across workflows but not in Conventions       | Suggest adding to Conventions              |
 | `trigger_branch` in Config differs from actual default branch | Update `trigger_branch` in Config to match |
 
 ### Presentation for review
 
 If there are updates, present a table:
 
-| Action   | Workflow             | Field    | Old value      | New value                |
-|----------|----------------------|----------|----------------|--------------------------|
-| add      | `security.yml`       | —        | —              | push to <default_branch>, scan deps  |
-| modify   | `tests.yml`          | Trigger  | push to <default_branch>   | push/PR to <default_branch>          |
-| remove   | `legacy-deploy.yml`  | —        | tag v*         | —                        |
+| Action   | Workflow             | Field    | Old value                | New value                           |
+|----------|----------------------|----------|--------------------------|-------------------------------------|
+| add      | `security.yml`       | —        | —                        | push to <default_branch>, scan deps |
+| modify   | `tests.yml`          | Trigger  | push to <default_branch> | push/PR to <default_branch>         |
+| remove   | `legacy-deploy.yml`  | —        | tag v*                   | —                                   |
 
 Wait for user approval. Record only approved changes.
 
@@ -337,13 +337,13 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 
 **Gap detection checks between configs and workflows:**
 
-| Check                                                     | Status on discrepancy               |
-|-----------------------------------------------------------|-------------------------------------|
-| qa.md exists with `lint_cmd` + no lint workflow           | **missing** — lint workflow needed  |
-| qa.md exists with `run_tests_cmd` + no tests workflow     | **missing** — tests workflow needed |
-| tech-writer.md exists with `build_cmd` + no docs workflow | **missing** — docs workflow needed  |
+| Check                                                          | Status on discrepancy                      |
+|----------------------------------------------------------------|--------------------------------------------|
+| qa.md exists with `lint_cmd` + no lint workflow                | **missing** — lint workflow needed         |
+| qa.md exists with `run_tests_cmd` + no tests workflow          | **missing** — tests workflow needed        |
+| tech-writer.md exists with `build_cmd` + no docs workflow      | **missing** — docs workflow needed         |
 | strictacode in optional-dependencies + no strictacode workflow | **missing** -- strictacode workflow needed |
-| strictacode workflow exists + no `.strictacode.yml`           | **missing** -- config file needed          |
+| strictacode workflow exists + no `.strictacode.yml`            | **missing** -- config file needed          |
 
 **Conventions checks:**
 
@@ -380,31 +380,31 @@ Generate a table:
 
 ## Common mistakes
 
-| Mistake                                                            | Fix                                                                                      |
-|--------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| Modifying workflow files without plan approval                     | Only change what the user approved in Phase 3                                            |
-| Reformatting the entire workflow file                              | Change only what is necessary, preserve existing style                                   |
-| Skipping Phase 6 (devops.md synchronization)                       | Always synchronize the Registry after changes                                            |
-| Adding `fetch-depth: 0`                                            | Never without an explicit reason                                                         |
-| Reading CI commands from CLAUDE.md                                 | Read commands only from qa.md Config and tech-writer.md Config                           |
-| Changing triggers without user request                             | Preserve the current trigger configuration unless the user asked to change it            |
-| Updating action versions without reason                            | Preserve current `uses:` versions unless there are security issues                       |
-| Ignoring qa.md Config changes                                      | lint_cmd and run_tests_cmd in workflows must match qa.md Config                          |
-| Ignoring tech-writer.md Config changes                             | build_cmd in the docs workflow must match tech-writer.md Config                          |
-| Creating a new workflow with hardcoded commands                    | Use commands from qa.md / tech-writer.md, do not invent them                             |
-| Skipping cross-check with pyproject.toml                           | Dependency group names and Python versions in CI must match pyproject.toml               |
-| Deleting a workflow without user confirmation                      | Confirm before each deletion                                                             |
-| Skipping optimization after updating devops.md                     | Rules will grow indefinitely                                                             |
-| Removing Registry entries without checking actual files            | Always scan `.github/workflows/` before removing entries                                 |
-| Skipping Phase 5 (verification)                                    | Always verify YAML syntax and cross-references after applying changes                    |
-| Processing non-CI changes in Phase 2                               | Filter out source code, documentation, and test changes — they do not require CI updates |
-| Writing changes to devops.md without approval                      | Always present changes for review before writing                                         |
-| Skipping audit when CI and project discrepancies are suspected     | Run Phase 7 for systematic desync detection                                              |
-| Ignoring orphan workflows during audit                             | Always suggest adding them to the Workflow Registry                                      |
-| Running `pip`/`python` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
-| Forgetting to create `.strictacode.yml` alongside workflow | Always check for `.strictacode.yml` when creating strictacode workflow                  |
-| Adding generic CI best practices as Conventions                           | Only add project-specific CI patterns that an AI agent would not know from general knowledge |
-| Skipping Conventions audit                                                   | Always check that existing Conventions are still followed in workflows during Phase 7 audit |
+| Mistake                                                             | Fix                                                                                          |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Modifying workflow files without plan approval                      | Only change what the user approved in Phase 3                                                |
+| Reformatting the entire workflow file                               | Change only what is necessary, preserve existing style                                       |
+| Skipping Phase 6 (devops.md synchronization)                        | Always synchronize the Registry after changes                                                |
+| Adding `fetch-depth: 0`                                             | Never without an explicit reason                                                             |
+| Reading CI commands from CLAUDE.md                                  | Read commands only from qa.md Config and tech-writer.md Config                               |
+| Changing triggers without user request                              | Preserve the current trigger configuration unless the user asked to change it                |
+| Updating action versions without reason                             | Preserve current `uses:` versions unless there are security issues                           |
+| Ignoring qa.md Config changes                                       | lint_cmd and run_tests_cmd in workflows must match qa.md Config                              |
+| Ignoring tech-writer.md Config changes                              | build_cmd in the docs workflow must match tech-writer.md Config                              |
+| Creating a new workflow with hardcoded commands                     | Use commands from qa.md / tech-writer.md, do not invent them                                 |
+| Skipping cross-check with pyproject.toml                            | Dependency group names and Python versions in CI must match pyproject.toml                   |
+| Deleting a workflow without user confirmation                       | Confirm before each deletion                                                                 |
+| Skipping optimization after updating devops.md                      | Rules will grow indefinitely                                                                 |
+| Removing Registry entries without checking actual files             | Always scan `.github/workflows/` before removing entries                                     |
+| Skipping Phase 5 (verification)                                     | Always verify YAML syntax and cross-references after applying changes                        |
+| Processing non-CI changes in Phase 2                                | Filter out source code, documentation, and test changes — they do not require CI updates     |
+| Writing changes to devops.md without approval                       | Always present changes for review before writing                                             |
+| Skipping audit when CI and project discrepancies are suspected      | Run Phase 7 for systematic desync detection                                                  |
+| Ignoring orphan workflows during audit                              | Always suggest adding them to the Workflow Registry                                          |
+| Running `pip`/`python` without virtualenv activation                | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`       |
+| Forgetting to create `.strictacode.yml` alongside workflow          | Always check for `.strictacode.yml` when creating strictacode workflow                       |
+| Adding generic CI best practices as Conventions                     | Only add project-specific CI patterns that an AI agent would not know from general knowledge |
+| Skipping Conventions audit                                          | Always check that existing Conventions are still followed in workflows during Phase 7 audit  |
 
 ## Phase 8: Retrospective
 

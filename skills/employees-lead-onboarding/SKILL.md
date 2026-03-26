@@ -132,8 +132,8 @@ Create `.qarium/ai/employees/lead.md` with the approved contents. All file conte
 
 ## Config
 
-| Key            | Value  | Description                                |
-|----------------|--------|--------------------------------------------|
+| Key            | Value  | Description                                  |
+|----------------|--------|----------------------------------------------|
 | default_branch | master | Default branch for CI triggers and diff base |
 
 ## Architecture & Decisions
@@ -161,15 +161,15 @@ After writing, read the file back for verification.
 
 ## Common mistakes
 
-| Mistake                                          | Fix                                                   |
-|--------------------------------------------------|-------------------------------------------------------|
-| Filling TODO or LLM Directives during onboarding | Leave empty — feature will fill from dialogue context |
-| Overwriting existing populated sections          | Check first — if populated, suggest feature           |
-| Recording obvious facts ("we use Python")        | Apply the significance filter                         |
-| Skipping Phase 3 (review)                        | Always present for approval                           |
-| Examples tied to a specific project              | Use generic examples, not from the current project    |
-| Skipping default_branch detection in Phase 1     | Always detect via git or ask the user; other roles depend on this value |
-| Forgetting to include Config in the file template | Config section must always be present in lead.md      |
+| Mistake                                           | Fix                                                                     |
+|---------------------------------------------------|-------------------------------------------------------------------------|
+| Filling TODO or LLM Directives during onboarding  | Leave empty — feature will fill from dialogue context                   |
+| Overwriting existing populated sections           | Check first — if populated, suggest feature                             |
+| Recording obvious facts ("we use Python")         | Apply the significance filter                                           |
+| Skipping Phase 3 (review)                         | Always present for approval                                             |
+| Examples tied to a specific project               | Use generic examples, not from the current project                      |
+| Skipping default_branch detection in Phase 1      | Always detect via git or ask the user; other roles depend on this value |
+| Forgetting to include Config in the file template | Config section must always be present in lead.md                        |
 
 ## Phase 5: Retrospective
 

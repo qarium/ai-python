@@ -61,14 +61,14 @@ digraph flow {
 
 ## Sections
 
-| Section                  | What to capture                                                                          |
-|--------------------------|------------------------------------------------------------------------------------------|
-| Architecture & Decisions | Architectural decisions and rationale, technology choices, design trade-offs             |
-| Project Structure        | Key files, dependencies, component relationships, module responsibilities                |
-| Code Patterns            | Coding conventions, style, recurring patterns, naming conventions                        |
-| TODO                     | Unresolved issues, technical debt, findings from code reviews, tasks for future sessions |
-| LLM Directives           | Specific rules for AI agents: what to do and what NOT to do when generating code         |
-| Config           | Project-wide settings: default branch, etc. | Not filled during knowledge accumulation, only checked in Phase 5 |
+| Section                  | What to capture                                                                                               |
+|--------------------------|---------------------------------------------------------------------------------------------------------------|
+| Architecture & Decisions | Architectural decisions and rationale, technology choices, design trade-offs                                  |
+| Project Structure        | Key files, dependencies, component relationships, module responsibilities                                     |
+| Code Patterns            | Coding conventions, style, recurring patterns, naming conventions                                             |
+| TODO                     | Unresolved issues, technical debt, findings from code reviews, tasks for future sessions                      |
+| LLM Directives           | Specific rules for AI agents: what to do and what NOT to do when generating code                              |
+| Config                   | Project-wide settings: default branch, etc. Not filled during knowledge accumulation, only checked in Phase 5 |
 
 ## Phase 1: Context Scanning
 
@@ -313,9 +313,9 @@ For each directive (especially with NEVER/Always), check the code for compliance
 
 **Check 6: Config sync**
 
-| Check                                     | Status on discrepancy                                       |
-|-------------------------------------------|------------------------------------------------------------|
-| `default_branch` in Config differs from git | Verify via `git symbolic-ref refs/remotes/origin/HEAD`    |
+| Check                                       | Status on discrepancy                                  |
+|---------------------------------------------|--------------------------------------------------------|
+| `default_branch` in Config differs from git | Verify via `git symbolic-ref refs/remotes/origin/HEAD` |
 
 ### strictacode summary
 
@@ -378,7 +378,7 @@ Form a table:
 | Running audit with conversation analysis        | Audit (Phase 6) works without conversation and git diff — only cross-checking lead.md with code |
 | Modifying entries during audit without approval | Audit only reports — changes require user approval                                              |
 | Skipping strictacode during audit               | Always invoke strictacode if the skill is available                                             |
-| Overwriting Config during Phase 5              | Only update `default_branch` if it has changed; do not add or remove other Config keys          |
+| Overwriting Config during Phase 5               | Only update `default_branch` if it has changed; do not add or remove other Config keys          |
 
 ## Phase 7: Retrospective
 

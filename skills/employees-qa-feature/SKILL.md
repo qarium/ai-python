@@ -278,18 +278,18 @@ After successful verification, synchronize project-specific test knowledge in `.
 
 Check for signals indicating rule updates are needed:
 
-| Signal                                    | Action                                                           | Subsection    |
-|-------------------------------------------|------------------------------------------------------------------|---------------|
-| Modified file not covered by Mapping      | Suggest new mapping                                              | Mapping       |
-| Mapping points to a deleted or moved file | Suggest `modify` or `remove`                                     | Mapping       |
-| Source file refactored to package         | Suggest `modify` — replace module path with package glob pattern | Mapping       |
-| New helper created in tests               | Suggest adding to table                                          | Helpers       |
-| Helper no longer exists in test files     | Suggest `remove`                                                 | Helpers       |
-| Non-standard mocking pattern applied      | Suggest adding to table                                          | Mock Patterns |
-| Mocking pattern no longer used in tests   | Suggest `remove`                                                 | Mock Patterns |
-| Convention detected in existing tests     | Suggest adding                                                   | Conventions   |
-| Project has `[project.scripts]` but no CLI Testing subsection | Suggest creating CLI Testing | CLI Testing |
-| Entry point module from CLI Testing no longer exists | Suggest updating CLI Testing | CLI Testing |
+| Signal                                                        | Action                                                           | Subsection    |
+|---------------------------------------------------------------|------------------------------------------------------------------|---------------|
+| Modified file not covered by Mapping                          | Suggest new mapping                                              | Mapping       |
+| Mapping points to a deleted or moved file                     | Suggest `modify` or `remove`                                     | Mapping       |
+| Source file refactored to package                             | Suggest `modify` — replace module path with package glob pattern | Mapping       |
+| New helper created in tests                                   | Suggest adding to table                                          | Helpers       |
+| Helper no longer exists in test files                         | Suggest `remove`                                                 | Helpers       |
+| Non-standard mocking pattern applied                          | Suggest adding to table                                          | Mock Patterns |
+| Mocking pattern no longer used in tests                       | Suggest `remove`                                                 | Mock Patterns |
+| Convention detected in existing tests                         | Suggest adding                                                   | Conventions   |
+| Project has `[project.scripts]` but no CLI Testing subsection | Suggest creating CLI Testing                                     | CLI Testing   |
+| Entry point module from CLI Testing no longer exists          | Suggest updating CLI Testing                                     | CLI Testing   |
 
 ### Conventions significance filter
 
@@ -330,9 +330,9 @@ Wait for user approval. Record only approved changes.
 
 Check if Config values still match the actual project state. Do not add or remove Config keys.
 
-| Check                                                | Source                                 | Action                                           |
-|------------------------------------------------------|----------------------------------------|--------------------------------------------------|
-| `run_tests_cmd` matches what pytest actually needs   | Run `pytest --collect-only` with it    | If it fails — suggest updating to the working command |
+| Check                                                 | Source                                 | Action                                                |
+|-------------------------------------------------------|----------------------------------------|-------------------------------------------------------|
+| `run_tests_cmd` matches what pytest actually needs    | Run `pytest --collect-only` with it    | If it fails — suggest updating to the working command |
 | `lint_cmd` produces the expected output               | Run `lint_cmd` on `<source>/ tests/`   | If it fails — suggest updating to the working command |
 | `format_cmd` produces the expected output             | Run `format_cmd` on `<source>/ tests/` | If it fails — suggest updating to the working command |
 
@@ -440,18 +440,18 @@ Used when the user asks to check qa.md for discrepancies with the actual state o
 
 **qa.md format checks:**
 
-| Check                                   | Status on discrepancy |
-|-----------------------------------------|-----------------------|
-| Missing `## Config`                     | **inaccurate**        |
-| Missing `### Mapping`                   | **inaccurate**        |
-| Missing `### Mock Patterns`             | **inaccurate**        |
-| Missing `### Helpers`                   | **inaccurate**        |
-| Missing `### Conventions`               | **inaccurate**        |
-| Config does not contain `run_tests_cmd` | **inaccurate**        |
-| Config does not contain `lint_cmd`      | **inaccurate**        |
-| Config does not contain `format_cmd`    | **inaccurate**        |
-| Config does not contain `lint_fix_cmd`   | **inaccurate** |
-| Config does not contain `format_fix_cmd` | **inaccurate** |
+| Check                                    | Status on discrepancy |
+|------------------------------------------|-----------------------|
+| Missing `## Config`                      | **inaccurate**        |
+| Missing `### Mapping`                    | **inaccurate**        |
+| Missing `### Mock Patterns`              | **inaccurate**        |
+| Missing `### Helpers`                    | **inaccurate**        |
+| Missing `### Conventions`                | **inaccurate**        |
+| Config does not contain `run_tests_cmd`  | **inaccurate**        |
+| Config does not contain `lint_cmd`       | **inaccurate**        |
+| Config does not contain `format_cmd`     | **inaccurate**        |
+| Config does not contain `lint_fix_cmd`   | **inaccurate**        |
+| Config does not contain `format_fix_cmd` | **inaccurate**        |
 
 **Config value checks:**
 
@@ -508,45 +508,45 @@ Generate the table:
 
 ## Common mistakes
 
-| Mistake                                                | Fix                                                                                                                                                                  |
-|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Overwriting an existing test file                      | Append new tests                                                                                                                                                     |
-| Skipping Phase 4 (Planning)                            | Always plan before writing tests                                                                                                                                     |
-| Writing tests outside the plan                         | Write only what is approved                                                                                                                                          |
-| Skipping Phase 3 (broken tests)                        | Always fix broken tests first                                                                                                                                        |
-| Not reading Rules from `.qarium/ai/employees/qa.md`    | Project conventions may differ from defaults                                                                                                                         |
-| Skipping Phase 7 (Rule update)                         | Rules will become stale over time                                                                                                                                    |
-| Adding rules without user confirmation                 | Always present changes first                                                                                                                                         |
-| Skipping optimization after adding rules               | Rules will grow indefinitely                                                                                                                                         |
-| Removing entries without checking their usage          | Search the test directory before removing helpers or patterns                                                                                                        |
-| Creating global fixtures for package-scoped tasks      | Prefer `tests/<package>/conftest.py`                                                                                                                                 |
-| Not re-running after lint fixes                        | Lint/format fixes may break tests                                                                                                                                    |
-| Writing tests for untouched functions                  | New file = all, existing = only `git diff`                                                                                                                           |
-| Missing `__init__.py` in a new test directory          | Run `pytest --collect-only` to verify                                                                                                                                |
-| Running ruff on the entire project                     | Use `ruff check <source>/ tests/`                                                                                                                                    |
-| Mocking `builtins.open`                                | Use the `tmp_path` fixture                                                                                                                                           |
-| Skipping `ruff format`                                 | Run both `ruff check` AND `ruff format`                                                                                                                              |
-| Testing boundaries without parametrize                 | Use `@pytest.mark.parametrize` with a value table                                                                                                                    |
-| Assuming git history exists                            | Handle repositories with a single commit and detached HEAD                                                                                                           |
-| Not determining the source directory in Phase 1        | Determine `<source>` by packages with `__init__.py`                                                                                                                  |
-| Skipping module-to-package refactoring detection       | Use `git diff --name-status` (not `--name-only`) to get file statuses, then check Phase 1 step 8 for all three refactoring signals (delete+add, rename, coexistence) |
-| Adding per-file mappings for package refactoring       | Use a single package glob pattern (`module/**/*.py` -> `tests/module/`) instead of one entry per file                                                                |
-| Allowing Mapping to override the refactoring rule      | The refactoring rule has the highest priority for test placement — always check Phase 1 first                                                                        |
-| Skipping untracked files in git diff                   | Add `git ls-files --others --exclude-standard` to find new files not yet added to the index                                                                          |
-| Using `--name-only` for file classification            | Use `--name-status` to get `A`/`D`/`M`/`R` statuses needed for classification and refactoring detection                                                              |
-| Running the full test suite before targeted tests      | Use Mapping to find and run the relevant tests, then the full suite                                                                                                  |
-| Failing to detect source regression when writing tests | Stop and explain to the user if the source code is broken, do not continue test generation                                                                           |
-| Moving test files without `git mv`                     | Use `git mv` to preserve history when moving test files during refactoring                                                                                           |
-| Running audit with git diff                            | Audit (Phase 8) works without git diff — cross-check qa.md with the actual state of the project                                                                      |
-| Skipping coverage check during audit                   | Always run `pytest --cov` and include results in the audit report                                                                                                    |
-| Deleting tests for existing source files during audit  | Audit only reports issues — deletions require user approval                                                                                                          |
-| Running `pytest`/`ruff` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`                                                                           |
-| Suggesting trivial or universal testing conventions                 | Apply the Conventions significance filter before suggesting                                                                                       |
-| Skipping Config validation during Rule update                            | Always check that Config commands still work when updating Rules                                                                                     |
-| Skipping CLI Testing audit for CLI projects                              | Always audit CLI Testing subsection if it exists; check for missing subsection in CLI projects                                                              |
-| Checking only Config key presence, not values during audit               | Always run Config commands and verify they work; report broken commands as **inaccurate**                                                                |
-| Not detecting CLI Testing subsection when project becomes CLI            | Always check `[project.scripts]` in pyproject.toml against CLI Testing subsection during Rule update and audit                                   |
-| Skipping Conventions audit                                                 | Always check that existing Conventions are still followed in tests; report stale conventions                                                             |
+| Mistake                                                       | Fix                                                                                                                                                                  |
+|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Overwriting an existing test file                             | Append new tests                                                                                                                                                     |
+| Skipping Phase 4 (Planning)                                   | Always plan before writing tests                                                                                                                                     |
+| Writing tests outside the plan                                | Write only what is approved                                                                                                                                          |
+| Skipping Phase 3 (broken tests)                               | Always fix broken tests first                                                                                                                                        |
+| Not reading Rules from `.qarium/ai/employees/qa.md`           | Project conventions may differ from defaults                                                                                                                         |
+| Skipping Phase 7 (Rule update)                                | Rules will become stale over time                                                                                                                                    |
+| Adding rules without user confirmation                        | Always present changes first                                                                                                                                         |
+| Skipping optimization after adding rules                      | Rules will grow indefinitely                                                                                                                                         |
+| Removing entries without checking their usage                 | Search the test directory before removing helpers or patterns                                                                                                        |
+| Creating global fixtures for package-scoped tasks             | Prefer `tests/<package>/conftest.py`                                                                                                                                 |
+| Not re-running after lint fixes                               | Lint/format fixes may break tests                                                                                                                                    |
+| Writing tests for untouched functions                         | New file = all, existing = only `git diff`                                                                                                                           |
+| Missing `__init__.py` in a new test directory                 | Run `pytest --collect-only` to verify                                                                                                                                |
+| Running ruff on the entire project                            | Use `ruff check <source>/ tests/`                                                                                                                                    |
+| Mocking `builtins.open`                                       | Use the `tmp_path` fixture                                                                                                                                           |
+| Skipping `ruff format`                                        | Run both `ruff check` AND `ruff format`                                                                                                                              |
+| Testing boundaries without parametrize                        | Use `@pytest.mark.parametrize` with a value table                                                                                                                    |
+| Assuming git history exists                                   | Handle repositories with a single commit and detached HEAD                                                                                                           |
+| Not determining the source directory in Phase 1               | Determine `<source>` by packages with `__init__.py`                                                                                                                  |
+| Skipping module-to-package refactoring detection              | Use `git diff --name-status` (not `--name-only`) to get file statuses, then check Phase 1 step 8 for all three refactoring signals (delete+add, rename, coexistence) |
+| Adding per-file mappings for package refactoring              | Use a single package glob pattern (`module/**/*.py` -> `tests/module/`) instead of one entry per file                                                                |
+| Allowing Mapping to override the refactoring rule             | The refactoring rule has the highest priority for test placement — always check Phase 1 first                                                                        |
+| Skipping untracked files in git diff                          | Add `git ls-files --others --exclude-standard` to find new files not yet added to the index                                                                          |
+| Using `--name-only` for file classification                   | Use `--name-status` to get `A`/`D`/`M`/`R` statuses needed for classification and refactoring detection                                                              |
+| Running the full test suite before targeted tests             | Use Mapping to find and run the relevant tests, then the full suite                                                                                                  |
+| Failing to detect source regression when writing tests        | Stop and explain to the user if the source code is broken, do not continue test generation                                                                           |
+| Moving test files without `git mv`                            | Use `git mv` to preserve history when moving test files during refactoring                                                                                           |
+| Running audit with git diff                                   | Audit (Phase 8) works without git diff — cross-check qa.md with the actual state of the project                                                                      |
+| Skipping coverage check during audit                          | Always run `pytest --cov` and include results in the audit report                                                                                                    |
+| Deleting tests for existing source files during audit         | Audit only reports issues — deletions require user approval                                                                                                          |
+| Running `pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`                                                                               |
+| Suggesting trivial or universal testing conventions           | Apply the Conventions significance filter before suggesting                                                                                                          |
+| Skipping Config validation during Rule update                 | Always check that Config commands still work when updating Rules                                                                                                     |
+| Skipping CLI Testing audit for CLI projects                   | Always audit CLI Testing subsection if it exists; check for missing subsection in CLI projects                                                                       |
+| Checking only Config key presence, not values during audit    | Always run Config commands and verify they work; report broken commands as **inaccurate**                                                                            |
+| Not detecting CLI Testing subsection when project becomes CLI | Always check `[project.scripts]` in pyproject.toml against CLI Testing subsection during Rule update and audit                                                       |
+| Skipping Conventions audit                                    | Always check that existing Conventions are still followed in tests; report stale conventions                                                                         |
 
 ## Phase 9: Retrospective
 

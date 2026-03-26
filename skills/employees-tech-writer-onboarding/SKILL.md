@@ -117,12 +117,12 @@ Ask the user to confirm or adjust documentation settings.
 
 ### Questions (one at a time)
 
-| # | Setting         | Default                    | Notes                        |
-|---|-----------------|----------------------------|------------------------------|
-| 1 | `build_cmd`     | `mkdocs build`             | Build validation command     |
-| 2 | `deploy_cmd`    | `mkdocs gh-deploy --force` | Documentation deploy command |
-| 3 | `examples_file` | none (optional)            | File for usage examples      |
-| 4 | `logo_url`      | GitHub avatar from Phase 1 | Header logo URL (optional)   |
+| # | Setting         | Default                    | Notes                               |
+|---|-----------------|----------------------------|-------------------------------------|
+| 1 | `build_cmd`     | `mkdocs build`             | Build validation command            |
+| 2 | `deploy_cmd`    | `mkdocs gh-deploy --force` | Documentation deploy command        |
+| 3 | `examples_file` | none (optional)            | File for usage examples             |
+| 4 | `logo_url`      | GitHub avatar from Phase 1 | Header logo URL (optional)          |
 | 5 | `base_branch`   | auto (from lead.md or git) | Base branch for git diff comparison |
 
 > **`base_branch` determination algorithm:**
@@ -326,12 +326,12 @@ Create the tech writer configuration file. The file is written in English.
 
 ## Config
 
-| Key           | Value                      | Description                        |
-|---------------|----------------------------|------------------------------------|
-| build_cmd     | `mkdocs build`             | Build validation command           |
-| deploy_cmd    | `mkdocs gh-deploy --force` | Deploy command                     |
-| examples_file | `docs/examples.md`         | File for usage examples (optional) |
-| logo_url      | `https://...`              | Header logo URL (optional)         |
+| Key           | Value                      | Description                         |
+|---------------|----------------------------|-------------------------------------|
+| build_cmd     | `mkdocs build`             | Build validation command            |
+| deploy_cmd    | `mkdocs gh-deploy --force` | Deploy command                      |
+| examples_file | `docs/examples.md`         | File for usage examples (optional)  |
+| logo_url      | `https://...`              | Header logo URL (optional)          |
 | base_branch   | `master`                   | Base branch for git diff comparison |
 
 ## Rules
@@ -364,22 +364,22 @@ Create the tech writer configuration file. The file is written in English.
 
 ## Common mistakes
 
-| Mistake                                                         | Fix                                                                      |
-|-----------------------------------------------------------------|--------------------------------------------------------------------------|
-| Overwriting existing mkdocs.yml                                 | Check before creating — only create missing files                        |
-| Overwriting existing `.qarium/ai/employees/tech-writer.md`      | Check first, on discovery suggest `qarium:employees:tech-writer:feature` |
-| Skipping dependency installation                                | Always run `pip install -e ".[docs]"` after Phase 4                      |
-| Skipping build verification                                     | Always verify that build_cmd works                                       |
-| Writing configuration without user approval                     | Present for review first                                                 |
-| Failing to detect existing dependencies                         | Carefully review Phase 1 results before asking questions                 |
-| Using default table values when Phase 1 detected existing tools | Phase 1 analysis takes priority over default values                      |
-| Not adding the dependency group `[docs]` to pyproject.toml      | Always add documentation dependencies to pyproject.toml                  |
-| Forgetting to add `docs/plans/` to `.gitignore`                 | Check in Phase 1 and add in Phase 4                                      |
-| Overwriting a full README.md                                    | Check README.md content — only overwrite if it is a git template         |
-| Skipping creation of `docs/overrides/main.html`                 | Always create alongside mkdocs.yml in Phase 4                            |
-| Forgetting `custom_dir` and `primary: custom` in mkdocs.yml     | The mkdocs.yml template in Phase 4 contains these settings               |
+| Mistake                                                         | Fix                                                                                    |
+|-----------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| Overwriting existing mkdocs.yml                                 | Check before creating — only create missing files                                      |
+| Overwriting existing `.qarium/ai/employees/tech-writer.md`      | Check first, on discovery suggest `qarium:employees:tech-writer:feature`               |
+| Skipping dependency installation                                | Always run `pip install -e ".[docs]"` after Phase 4                                    |
+| Skipping build verification                                     | Always verify that build_cmd works                                                     |
+| Writing configuration without user approval                     | Present for review first                                                               |
+| Failing to detect existing dependencies                         | Carefully review Phase 1 results before asking questions                               |
+| Using default table values when Phase 1 detected existing tools | Phase 1 analysis takes priority over default values                                    |
+| Not adding the dependency group `[docs]` to pyproject.toml      | Always add documentation dependencies to pyproject.toml                                |
+| Forgetting to add `docs/plans/` to `.gitignore`                 | Check in Phase 1 and add in Phase 4                                                    |
+| Overwriting a full README.md                                    | Check README.md content — only overwrite if it is a git template                       |
+| Skipping creation of `docs/overrides/main.html`                 | Always create alongside mkdocs.yml in Phase 4                                          |
+| Forgetting `custom_dir` and `primary: custom` in mkdocs.yml     | The mkdocs.yml template in Phase 4 contains these settings                             |
 | Running `pip`/`mkdocs` without virtualenv activation            | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
-| Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`               |
+| Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`                             |
 
 ## Phase 7: Retrospective
 

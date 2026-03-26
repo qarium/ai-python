@@ -113,12 +113,12 @@ If any settings are missing -- suggest adding them and wait for user confirmatio
 
 Automatically determine which workflows the project needs, based on Phase 1:
 
-| Workflow | Detection                                                                     |
-|----------|-------------------------------------------------------------------------------|
-| Lint     | `[tool.ruff]` found in pyproject.toml AND qa.md exists (contains `lint_cmd`)  |
-| Tests    | qa.md exists (contains `run_tests_cmd`)                                       |
-| Docs     | tech-writer.md exists (contains `build_cmd`)                                  |
-| Publish    | `[build-system]` and `[project]` with `version` exist in pyproject.toml       |
+| Workflow    | Detection                                                                             |
+|-------------|---------------------------------------------------------------------------------------|
+| Lint        | `[tool.ruff]` found in pyproject.toml AND qa.md exists (contains `lint_cmd`)          |
+| Tests       | qa.md exists (contains `run_tests_cmd`)                                               |
+| Docs        | tech-writer.md exists (contains `build_cmd`)                                          |
+| Publish     | `[build-system]` and `[project]` with `version` exist in pyproject.toml               |
 | Strictacode | `strictacode` found in `[project.optional-dependencies]` or user explicitly requested |
 
 Present the detected set to the user. The user can:
@@ -403,11 +403,11 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 
 ## Config
 
-| Key            | Value          | Description                                 |
-|----------------|----------------|---------------------------------------------|
-| ci_provider    | github-actions | CI provider                                 |
+| Key            | Value            | Description                                 |
+|----------------|------------------|---------------------------------------------|
+| ci_provider    | github-actions   | CI provider                                 |
 | trigger_branch | <default_branch> | Default branch for triggers                 |
-| diff_range     | HEAD~5         | Git diff range for auto-analysis in feature |
+| diff_range     | HEAD~5           | Git diff range for auto-analysis in feature |
 
 ## Rules
 
@@ -427,12 +427,12 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 - Fill in Config with values from Phase 1: `ci_provider` is always `github-actions`, `trigger_branch` is the project's default branch determined in Phase 1 step 1.5, `diff_range` is `HEAD~5` by default
 - Fill in the Workflow Registry only with workflows actually created in Phase 4. For example:
 
-| Workflow | File                            | Trigger         | Purpose             |
-|----------|---------------------------------|-----------------|---------------------|
+| Workflow | File                            | Trigger                     | Purpose             |
+|----------|---------------------------------|-----------------------------|---------------------|
 | Lint     | `.github/workflows/lint.yml`    | push/PR to <default_branch> | ruff check + format |
 | Tests    | `.github/workflows/tests.yml`   | push/PR to <default_branch> | pytest matrix       |
 | Docs     | `.github/workflows/docs.yml`    | push to <default_branch>    | mkdocs deploy       |
-| Publish  | `.github/workflows/publish.yml` | tag v*          | PyPI release        |
+| Publish  | `.github/workflows/publish.yml` | tag v*                      | PyPI release        |
 
 - Conventions -- empty placeholder for future expansion
 - Include only rows for workflows that were actually created. Skip rows for excluded workflows.
@@ -450,26 +450,26 @@ Onboarding creates CI/CD infrastructure from scratch. The onboarding skill itsel
 
 ## Common Mistakes
 
-| Mistake                                                                     | Fix                                                                                       |
-|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| Creating a workflow for another provider                                    | Use only GitHub Actions -- no choice is offered                                           |
-| Hardcoding Python version in workflow                                       | Determine from `requires-python` in pyproject.toml                                        |
-| Hardcoding dependency group name                                            | Determine from qa.md/tech-writer.md Config or `[project.optional-dependencies]`           |
-| Using default commands instead of commands from qa.md/tech-writer.md Config | Always check qa.md and tech-writer.md first; defaults are only used when they are missing |
-| Overwriting existing workflow files                                         | Check before creating -- only create files that are missing                               |
-| Incorrect trigger branches                                                  | Follow the project convention (master vs main), as determined in Phase 1                  |
-| Skipping verification in Phase 5                                            | Always verify YAML syntax and configuration consistency                                   |
-| Including workflows not confirmed by the user                               | Create only workflows approved in Phase 3                                                 |
-| Overwriting existing `.qarium/ai/employees/devops.md`                       | Check first; if found, suggest `qarium:employees:devops:feature`                          |
-| Adding `fetch-depth: 0` without an explicit reason                          | Do not use without an explicit user request                                               |
-| Writing devops.md without user approval                                     | Present for review first                                                                  |
-| Checking qa.md/tech-writer.md only when they exist, without fallback        | Always offer reasonable defaults when configuration is missing                            |
-| Generating `license = {file = "LICENSE"}` instead of `{text = "..."}` | Always use `{text = "..."}` format (PEP 639)                                                        |
-| Including Python versions older than `requires-python` in classifiers | Only include versions >= minimum from `requires-python`                                             |
-| Hardcoding Python classifiers instead of deriving from `requires-python` | Generate classifiers dynamically based on minimum version                                          |
-| Running `pip`/`python` without virtualenv activation                | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`              |
-| Overwriting existing `.strictacode.yml`                              | Check before creating -- only create if the file does not exist                                    |
-| Hardcoding `main` or `master` as trigger branch                      | Always determine from Phase 1 step 1.5 (lead.md Config or git auto-detect)                         |
+| Mistake                                                                      | Fix                                                                                       |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Creating a workflow for another provider                                     | Use only GitHub Actions -- no choice is offered                                           |
+| Hardcoding Python version in workflow                                        | Determine from `requires-python` in pyproject.toml                                        |
+| Hardcoding dependency group name                                             | Determine from qa.md/tech-writer.md Config or `[project.optional-dependencies]`           |
+| Using default commands instead of commands from qa.md/tech-writer.md Config  | Always check qa.md and tech-writer.md first; defaults are only used when they are missing |
+| Overwriting existing workflow files                                          | Check before creating -- only create files that are missing                               |
+| Incorrect trigger branches                                                   | Follow the project convention (master vs main), as determined in Phase 1                  |
+| Skipping verification in Phase 5                                             | Always verify YAML syntax and configuration consistency                                   |
+| Including workflows not confirmed by the user                                | Create only workflows approved in Phase 3                                                 |
+| Overwriting existing `.qarium/ai/employees/devops.md`                        | Check first; if found, suggest `qarium:employees:devops:feature`                          |
+| Adding `fetch-depth: 0` without an explicit reason                           | Do not use without an explicit user request                                               |
+| Writing devops.md without user approval                                      | Present for review first                                                                  |
+| Checking qa.md/tech-writer.md only when they exist, without fallback         | Always offer reasonable defaults when configuration is missing                            |
+| Generating `license = {file = "LICENSE"}` instead of `{text = "..."}`        | Always use `{text = "..."}` format (PEP 639)                                              |
+| Including Python versions older than `requires-python` in classifiers        | Only include versions >= minimum from `requires-python`                                   |
+| Hardcoding Python classifiers instead of deriving from `requires-python`     | Generate classifiers dynamically based on minimum version                                 |
+| Running `pip`/`python` without virtualenv activation                         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
+| Overwriting existing `.strictacode.yml`                                      | Check before creating -- only create if the file does not exist                           |
+| Hardcoding `main` or `master` as trigger branch                              | Always determine from Phase 1 step 1.5 (lead.md Config or git auto-detect)                |
 
 ## Phase 7: Retrospective
 
