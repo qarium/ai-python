@@ -9,7 +9,7 @@ Before doing anything, determine whether the project has DevOps infrastructure:
 
 **Both conditions met** — invoke the `employees-devops-feature` skill and follow it from start to finish: load configuration from `.qarium/ai/employees/devops.md`, identify changes, analyze affected pipelines, update CI/CD configuration, verify pipeline correctness.
 
-**devops.md does not exist but workflows are present** — invoke the `employees-devops-feature` skill in audit mode: read existing workflows, determine `trigger_branch` from triggers in workflow files (default `main`), create `.qarium/ai/employees/devops.md` based on actual CI state, prompt the user to approve. After writing, invoke feature with original arguments.
+**devops.md does not exist but workflows are present** — invoke the `employees-devops-feature` skill in audit mode: read existing workflows, determine `trigger_branch` from triggers in workflow files (determine from lead.md Config or git symbolic-ref; fallback master), create `.qarium/ai/employees/devops.md` based on actual CI state, prompt the user to approve. After writing, invoke feature with original arguments.
 
 **No conditions met** — invoke the `employees-devops-onboarding` skill and follow it from start to finish: analyze the project, propose CI/CD strategy, configure pipelines, write configuration to `.qarium/ai/employees/devops.md`. After onboarding completes, invoke the `employees-devops-feature` skill, passing the same original arguments.
 

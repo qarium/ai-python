@@ -23,6 +23,17 @@ GitHub Actions is the only CI provider. No choice is offered.
 - `.github/workflows/` already contains workflows -- warn the user and suggest using `qarium:employees:devops:feature`
 - This is not a Python project
 
+## Virtual Environment
+
+Before executing any shell commands (pip, python), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to any phase that executes shell commands (pip, python).
+
 ```dot
 digraph flow {
     rankdir=LR;
@@ -48,6 +59,7 @@ digraph flow {
 Collecting information about the current state of the project.
 
 1. **Python version** -- read `requires-python` from `[project]` in `pyproject.toml`. Extract the minimum version (e.g., `>=3.10` → `py310`). This determines the Python version matrix in CI. If not specified, use `py312` by default.
+1.5. **Default branch** -- read `default_branch` from `.qarium/ai/employees/lead.md` Config. If `lead.md` does not exist -- try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'` -- fallback `master`. This determines trigger branches for all workflows.
 2. **Build system** -- determine from `[build-system]` requires: setuptools, hatchling, poetry-core, flit-core, pdm-backend. If not specified, default to setuptools.
 3. **Source directory** -- find the main package in the project root (directory with `__init__.py`, e.g., `strictacode/`, `myapp/`). This will be `<source>` for lint commands.
 4. **qa.md** -- if `.qarium/ai/employees/qa.md` exists, read the `## Config` section and extract:
@@ -74,7 +86,7 @@ Present the summary to the user before proceeding to Phase 2. The summary includ
 
 ## Phase 2: pyproject.toml Configuration for Deploy
 
-Check minimum settings for package publication.
+Check and create minimum settings for package publication.
 
 1. `[build-system]` -- must contain `requires` and `build-backend`. If missing, suggest adding:
    ```toml
@@ -83,6 +95,15 @@ Check minimum settings for package publication.
    build-backend = "setuptools.build_meta"
    ```
 2. `[project]` -- must contain `name`, `version`, `description`. If missing, suggest adding a minimal configuration.
+3. `requires-python` -- if missing, ask the user for the minimum Python version (default `>=3.10`).
+4. `classifiers` -- if missing, offer to generate based on `requires-python`:
+   - All Python minor versions from minimum to 3.14 (inclusive)
+   - `Development Status :: 3 - Alpha` for version `0.x`, `4 - Beta` for `1.x`
+   - `Intended Audience :: Developers` for library or CLI projects
+   - Only include versions >= minimum from `requires-python`
+5. `license` -- if missing, ask the user to choose: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip.
+   - Format: `license = {text = "MIT"}` (PEP 639, requires setuptools>=69)
+   - Always use `{text = "..."}` format, never `{file = "LICENSE"}`
 
 If any settings are missing -- suggest adding them and wait for user confirmation.
 
@@ -95,7 +116,8 @@ Automatically determine which workflows the project needs, based on Phase 1:
 | Lint     | `[tool.ruff]` found in pyproject.toml AND qa.md exists (contains `lint_cmd`)  |
 | Tests    | qa.md exists (contains `run_tests_cmd`)                                       |
 | Docs     | tech-writer.md exists (contains `build_cmd`)                                  |
-| Publish  | `[build-system]` and `[project]` with `version` exist in pyproject.toml       |
+| Publish    | `[build-system]` and `[project]` with `version` exist in pyproject.toml       |
+| Strictacode | `strictacode` found in `[project.optional-dependencies]` or user explicitly requested |
 
 Present the detected set to the user. The user can:
 - Confirm the detected set
@@ -116,9 +138,9 @@ Create GitHub Actions workflow files based on the approved selections. Use comma
 name: Lint
 on:
   push:
-    branches: [master, main]
+    branches: [<default_branch>]
   pull_request:
-    branches: [master, main]
+    branches: [<default_branch>]
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -144,9 +166,9 @@ jobs:
 name: Tests
 on:
   push:
-    branches: [master, main]
+    branches: [<default_branch>]
   pull_request:
-    branches: [master, main]
+    branches: [<default_branch>]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -185,7 +207,7 @@ Determine the documentation deploy strategy. Two options are available:
 name: Release docs
 on:
   push:
-    branches: [master]
+    branches: [<default_branch>]
 permissions:
   contents: write
 jobs:
@@ -208,7 +230,7 @@ jobs:
 name: Docs
 on:
   push:
-    branches: [master]
+    branches: [<default_branch>]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -289,12 +311,73 @@ jobs:
 - Configure the Python version in the build step based on `requires-python` from Phase 1.
 - Do not use `fetch-depth: 0` without an explicit reason.
 
+### Strictacode Workflow
+
+`.github/workflows/strictacode.yml`:
+
+```yaml
+name: Strictacode
+on:
+  push:
+    branches: [<default_branch>]
+  pull_request:
+    branches: [<default_branch>]
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - uses: qarium/strictacode/.github/actions/analyze@v1
+        with:
+          install-cmd: pip install strictacode
+        env:
+          STRICTACODE_SCORE: "<from user or default 40>"
+          STRICTACODE_RP: "<from user or default 40>"
+          STRICTACODE_OP: "<from user or default 40>"
+          STRICTACODE_IMB: "<from user or default 35>"
+          STRICTACODE_DENSITY: "<from user or default 30>"
+          STRICTACODE_SCORE_DIFF: "<from user or default 3>"
+          STRICTACODE_RP_DIFF: "<from user or default 5>"
+          STRICTACODE_OP_DIFF: "<from user or default 5>"
+          STRICTACODE_DENSITY_DIFF: "<from user or default 3>"
+```
+
+**Threshold settings:** Ask the user during Phase 3 confirmation. The values above are defaults.
+
+**Python version:** Use `3.13` minimum for CI, regardless of `requires-python`.
+
+**Trigger branches:** Use `default_branch` determined in Phase 1 step 1.5.
+
+**Additionally:** Create `.strictacode.yml` in the project root (if it does not already exist):
+
+```yaml
+loader:
+  exclude:
+    - tests
+```
+
+Do not overwrite an existing `.strictacode.yml`.
+
 ### Generation Rules
 
 - Create `.github/workflows/` if it does not exist
 - Do not overwrite existing workflow files -- skip if already present
 - Create only the workflows approved in Phase 3
 - Replace `<source>` with the actual source directory from Phase 1
+- Replace `<default_branch>` with the actual default branch from Phase 1 step 1.5
+- If `.strictacode.yml` already exists in the project root -- skip creation
+- The Strictacode workflow uses `qarium/strictacode/.github/actions/analyze@v1` as a remote composite action
 
 ## Phase 5: Verification
 
@@ -321,7 +404,7 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 | Key            | Value          | Description                                 |
 |----------------|----------------|---------------------------------------------|
 | ci_provider    | github-actions | CI provider                                 |
-| trigger_branch | main           | Default branch for triggers                 |
+| trigger_branch | <default_branch> | Default branch for triggers                 |
 | diff_range     | HEAD~5         | Git diff range for auto-analysis in feature |
 
 ## Rules
@@ -334,14 +417,14 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 ### Conventions
 ```
 
-- Fill in Config with values from Phase 1: `ci_provider` is always `github-actions`, `trigger_branch` is the project's main branch, `diff_range` is `HEAD~5` by default
+- Fill in Config with values from Phase 1: `ci_provider` is always `github-actions`, `trigger_branch` is the project's default branch determined in Phase 1 step 1.5, `diff_range` is `HEAD~5` by default
 - Fill in the Workflow Registry only with workflows actually created in Phase 4. For example:
 
 | Workflow | File                            | Trigger         | Purpose             |
 |----------|---------------------------------|-----------------|---------------------|
-| Lint     | `.github/workflows/lint.yml`    | push/PR to main | ruff check + format |
-| Tests    | `.github/workflows/tests.yml`   | push/PR to main | pytest matrix       |
-| Docs     | `.github/workflows/docs.yml`    | push to main    | mkdocs deploy       |
+| Lint     | `.github/workflows/lint.yml`    | push/PR to <default_branch> | ruff check + format |
+| Tests    | `.github/workflows/tests.yml`   | push/PR to <default_branch> | pytest matrix       |
+| Docs     | `.github/workflows/docs.yml`    | push to <default_branch>    | mkdocs deploy       |
 | Publish  | `.github/workflows/publish.yml` | tag v*          | PyPI release        |
 
 - Conventions -- empty placeholder for future expansion
@@ -356,7 +439,7 @@ Create the DevOps configuration file. The entire contents of the `.qarium/ai/emp
 
 ## After Onboarding
 
-Onboarding creates CI/CD infrastructure from scratch. Unlike qa and tech-writer, devOps does **not** automatically invoke feature after onboarding -- CI pipelines typically do not require immediate changes after creation. To modify CI later, the user can run `/qarium:employees:devops` again, and the dispatch will direct to `qarium:employees:devops:feature`.
+Onboarding creates CI/CD infrastructure from scratch. The onboarding skill itself does not invoke feature. However, the dispatcher (`/qarium:employees:devops`) may invoke feature after onboarding completes, passing the original arguments. To modify CI later, the user can run `/qarium:employees:devops` again, and the dispatch will direct to `qarium:employees:devops:feature`.
 
 ## Common Mistakes
 
@@ -374,3 +457,9 @@ Onboarding creates CI/CD infrastructure from scratch. Unlike qa and tech-writer,
 | Adding `fetch-depth: 0` without an explicit reason                          | Do not use without an explicit user request                                               |
 | Writing devops.md without user approval                                     | Present for review first                                                                  |
 | Checking qa.md/tech-writer.md only when they exist, without fallback        | Always offer reasonable defaults when configuration is missing                            |
+| Generating `license = {file = "LICENSE"}` instead of `{text = "..."}` | Always use `{text = "..."}` format (PEP 639)                                                        |
+| Including Python versions older than `requires-python` in classifiers | Only include versions >= minimum from `requires-python`                                             |
+| Hardcoding Python classifiers instead of deriving from `requires-python` | Generate classifiers dynamically based on minimum version                                          |
+| Running `pip`/`python` without virtualenv activation                | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`              |
+| Overwriting existing `.strictacode.yml`                              | Check before creating -- only create if the file does not exist                                    |
+| Hardcoding `main` or `master` as trigger branch                      | Always determine from Phase 1 step 1.5 (lead.md Config or git auto-detect)                         |

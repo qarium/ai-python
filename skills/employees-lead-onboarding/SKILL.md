@@ -46,7 +46,11 @@ Collecting information about the current state of the Python project.
    - Build system from `[build-system]` requires: setuptools/hatchling/poetry-core/flit-core/pdm-backend
    - Entry points (`[project.scripts]`)
 2. **Source structure** — find the main package directory (with `__init__.py`), traverse the directory tree, identify packages and subdirectories
-3. **Source code** — read key files in the package root to discover patterns:
+3. **Default branch** — determine the project's default branch:
+   - Try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'`
+   - If that fails, try `git branch --show-current`
+   - If that fails, ask the user (`master` or `main`)
+4. **Source code** — read key files in the package root to discover patterns:
    - Import style (absolute, relative, wildcard)
    - Error handling (exceptions, Result types, error codes)
    - Naming conventions (private with underscore, UPPER_SNAKE_CASE for constants)
@@ -67,6 +71,9 @@ Based on the analysis from Phase 1, generate entries for each section.
 | Code Patterns            | naming conventions, import style, error handling        | Yes                       |
 | TODO                     | —                                                       | Empty (`<!-- empty -->`)  |
 | LLM Directives           | —                                                       | Empty (`<!-- empty -->`)  |
+
+Additionally, fill the Config section:
+- `default_branch` — from Phase 1 step 3 (default branch detection)
 
 ### Record format
 
@@ -121,6 +128,12 @@ Create `.qarium/ai/employees/lead.md` with the approved contents. All file conte
 ```markdown
 # Lead
 
+## Config
+
+| Key            | Value  | Description                                |
+|----------------|--------|--------------------------------------------|
+| default_branch | master | Default branch for CI triggers and diff base |
+
 ## Architecture & Decisions
 <approved entries>
 
@@ -148,3 +161,5 @@ After writing, read the file back for verification.
 | Recording obvious facts ("we use Python")        | Apply the significance filter                         |
 | Skipping Phase 3 (review)                        | Always present for approval                           |
 | Examples tied to a specific project              | Use generic examples, not from the current project    |
+| Skipping default_branch detection in Phase 1     | Always detect via git or ask the user; other roles depend on this value |
+| Forgetting to include Config in the file template | Config section must always be present in lead.md      |

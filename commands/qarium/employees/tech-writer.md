@@ -15,7 +15,12 @@ Arguments: $ARGUMENTS
 
 - If argument is `audit` — invoke flow in audit mode (cross-check sources and documentation, without git diff)
 - If arguments are provided and not `audit` — treat them as base reference for git diff comparison (e.g., `origin/pr/42`, `v1.2`)
-- If empty — compare with `main`
+- If empty — determine `base_branch`:
+  1. Read `base_branch` from `.qarium/ai/employees/tech-writer.md` Config
+  2. If not found, read `default_branch` from `.qarium/ai/employees/lead.md` Config
+  3. If not resolved → try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null`
+  4. If not resolved → `master` (fallback)
+  5. Compare with the resolved branch name
 
 Remember the original arguments throughout the entire onboarding → flow sequence. If the original call was `/qarium:employees:tech-writer origin/pr/42`, the flow call must use the same reference.
 

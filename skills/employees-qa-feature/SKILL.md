@@ -67,6 +67,17 @@ digraph flow {
 - Changes only affect documentation, CI configuration, or README
 - The user explicitly asked to skip tests
 
+## Virtual Environment
+
+Before executing any shell commands (pytest, ruff), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to all phases that run shell commands: Phase 2, Phase 3, Phase 5, Phase 6, Phase 8.
+
 ## Phase 1: Change detection
 
 If the argument is `audit` — skip this phase and go to Phase 8.
@@ -392,6 +403,8 @@ Used when the user asks to check qa.md for discrepancies with the actual state o
 | Config does not contain `run_tests_cmd` | **inaccurate**        |
 | Config does not contain `lint_cmd`      | **inaccurate**        |
 | Config does not contain `format_cmd`    | **inaccurate**        |
+| Config does not contain `lint_fix_cmd`   | **inaccurate** |
+| Config does not contain `format_fix_cmd` | **inaccurate** |
 
 **Coverage checks:**
 
@@ -468,3 +481,4 @@ Generate the table:
 | Running audit with git diff                            | Audit (Phase 8) works without git diff — cross-check qa.md with the actual state of the project                                                                      |
 | Skipping coverage check during audit                   | Always run `pytest --cov` and include results in the audit report                                                                                                    |
 | Deleting tests for existing source files during audit  | Audit only reports issues — deletions require user approval                                                                                                          |
+| Running `pytest`/`ruff` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`                                                                           |

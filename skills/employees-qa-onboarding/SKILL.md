@@ -22,6 +22,17 @@ Analyzes a Python project, configures pytest + ruff as the standard stack, gener
 - The project has no `pyproject.toml` — explain that onboarding only works with pyproject.toml and stop
 - `.qarium/ai/employees/qa.md` already has a `## Rules` section — warn the user and suggest using `qarium:employees:qa:feature`
 
+## Virtual Environment
+
+Before executing any shell commands (pip, python, pytest, ruff), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to all phases: Phase 3 (pip install), Phase 4 (pytest, ruff).
+
 ```dot
 digraph flow {
     rankdir=LR;
@@ -172,9 +183,13 @@ After writing all configuration files, install the test dependencies in the curr
 pip install -e ".[<group>]"
 ```
 
+If virtualenv was detected (see Virtual Environment), prefix with `source .venv/bin/activate &&`. If not, run as-is.
+
 Use the dependency group name defined in Phase 1 (e.g., `test`, `dev`). If `pip install` fails, explain the error and wait for the user's instructions.
 
 ## Phase 4: Verification
+
+All verification commands below should be prefixed with virtualenv activation if a virtual environment was detected (see Virtual Environment section).
 
 Run verification commands in order:
 
@@ -268,4 +283,5 @@ Include the **CLI Testing** subsection only if the project type is a CLI applica
 | Hardcoding the Python version                                       | Determine from `requires-python` in pyproject.toml                                        |
 | Choosing a function with external dependencies for the example test | Choose the simplest function without file I/O, network, or subprocesses                   |
 | Skipping empty tables in qa.md                                      | Always create Mock Patterns and Helpers with empty tables — the flow will fill them later |
+| Running `pip`/`pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`   |
 | Skipping the Config section                                         | Config is always filled with commands from Phase 2                                        |

@@ -23,6 +23,17 @@ MkDocs is the only static site generator. No choice is offered.
 - This is not a Python project
 - `.qarium/ai/employees/tech-writer.md` already exists — warn the user and suggest using `qarium:employees:tech-writer:feature`
 
+## Virtual Environment
+
+Before executing any shell commands (pip, python, mkdocs), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to Phase 5 (pip install, mkdocs build).
+
 ```dot
 digraph flow {
     rankdir=LR;
@@ -110,6 +121,12 @@ Ask the user to confirm or adjust documentation settings.
 | 2 | `deploy_cmd`    | `mkdocs gh-deploy --force` | Documentation deploy command |
 | 3 | `examples_file` | none (optional)            | File for usage examples      |
 | 4 | `logo_url`      | GitHub avatar from Phase 1 | Header logo URL (optional)   |
+| 5 | `base_branch`   | auto (from lead.md or git) | Base branch for git diff comparison |
+
+> **`base_branch` determination algorithm:**
+> 1. Read `default_branch` from `.qarium/ai/employees/lead.md` Config
+> 2. If `lead.md` does not exist → try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null`
+> 3. If not resolved → `master` (fallback)
 
 After all choices, present the full configuration summary and request confirmation before Phase 4.
 
@@ -127,7 +144,7 @@ site_name: <from pyproject.toml [project.name]>
 site_description: <from pyproject.toml [project.description]>
 site_url: <from pyproject.toml [project.urls.Homepage] or leave empty>
 repo_url: <from git remote or pyproject.toml>
-edit_uri: edit/main/docs/
+edit_uri: edit/<default_branch>/docs/
 
 theme:
   name: material
@@ -288,6 +305,7 @@ The template is in English. The "Installation" section and description are fille
    ```
    pip install -e ".[docs]"
    ```
+   If virtualenv was detected (see Virtual Environment), prefix with `source .venv/bin/activate &&`. If not, run as-is.
 3. Run `build_cmd` to verify successful documentation build.
 
 **On build error:**
@@ -312,6 +330,7 @@ Create the tech writer configuration file. The file is written in English.
 | deploy_cmd    | `mkdocs gh-deploy --force` | Deploy command                     |
 | examples_file | `docs/examples.md`         | File for usage examples (optional) |
 | logo_url      | `https://...`              | Header logo URL (optional)         |
+| base_branch   | `master`                   | Base branch for git diff comparison |
 
 ## Rules
 
@@ -352,3 +371,5 @@ Create the tech writer configuration file. The file is written in English.
 | Overwriting a full README.md                                    | Check README.md content — only overwrite if it is a git template         |
 | Skipping creation of `docs/overrides/main.html`                 | Always create alongside mkdocs.yml in Phase 4                            |
 | Forgetting `custom_dir` and `primary: custom` in mkdocs.yml     | The mkdocs.yml template in Phase 4 contains these settings               |
+| Running `pip`/`mkdocs` without virtualenv activation            | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
+| Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`               |

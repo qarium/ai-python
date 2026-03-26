@@ -68,6 +68,17 @@ digraph flow {
 - Changes are not related to CI (source code only, documentation)
 - The user explicitly asked to skip CI updates
 
+## Virtual Environment
+
+Before executing any shell commands (pip, python), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to any phase that executes shell commands (pip, python).
+
 ## Phase 1: Context Loading
 
 1. Read `.qarium/ai/employees/devops.md` and extract:
@@ -87,11 +98,12 @@ digraph flow {
    - `[build-system]` — build system and dependencies
    - `[project.optional-dependencies]` — all dependency groups and their contents
    - `[project.scripts]` — presence of CLI entry point
-5. Determine **trigger_branch** from Config in devops.md (default: `main`)
+5. Determine **trigger_branch** from Config in devops.md (see step 5.5 for resolution chain)
+5.5. **Default branch (alternative source)** -- if `trigger_branch` in devops.md Config differs from the actual project default, or if devops.md Config is missing `trigger_branch`, determine from `.qarium/ai/employees/lead.md` Config (`default_branch` key). If `lead.md` does not exist -- try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'` -- fallback `master`. If a discrepancy is found — add it to the change plan: update `trigger_branch` in devops.md Config to match the actual default branch, and update triggers in all workflows accordingly.
 
 ### Missing configuration
 
-- If `.qarium/ai/employees/devops.md` does not exist — warn the user and suggest running `qarium:employees:devops:onboarding` first. Terminate.
+- If `.qarium/ai/employees/devops.md` does not exist — enter **audit recovery mode**: read existing workflow files from `.github/workflows/*.yml`, determine `trigger_branch` from workflow triggers (determine from lead.md Config or git symbolic-ref; fallback master), create `.qarium/ai/employees/devops.md` from the actual CI state, and present it to the user for approval. After writing, proceed with the audit.
 - If qa.md does not exist — use default commands: `pytest --tb=short`, `ruff check <source>/ tests/`, `ruff format <source>/ tests/`
 - If tech-writer.md does not exist — use default command: `mkdocs build`
 - If Config is missing in devops.md — continue with default settings
@@ -117,6 +129,7 @@ digraph flow {
 | pyproject.toml: `[build-system]`                 | Update `publish.yml`                     |
 | Files `.github/workflows/*.yml` changed directly | Update devops.md Workflow Registry       |
 | Change of trigger_branch in devops.md Config     | Update triggers in all workflows         |
+| `strictacode` added to `[project.optional-dependencies]` | May require creating `strictacode.yml` workflow and `.strictacode.yml` config |
 
 5. If no changes are detected — skip Phases 3-5 and proceed to Phase 6 (devops.md synchronization)
 
@@ -129,6 +142,7 @@ After analyzing the git diff, additionally check: has a new employee config appe
 | qa.md (with `lint_cmd`)           | No lint workflow     | Create `lint.yml`   |
 | qa.md (with `run_tests_cmd`)      | No tests workflow    | Create `tests.yml`  |
 | tech-writer.md (with `build_cmd`) | No docs workflow     | Create `docs.yml`   |
+| strictacode in optional-dependencies + no strictacode workflow | Create `strictacode.yml` workflow and `.strictacode.yml` |
 
 This covers the scenario where devops onboarding was completed before qa/tech-writer onboarding, and workflows for them were not created.
 
@@ -219,6 +233,7 @@ Update the Workflow Registry in `.qarium/ai/employees/devops.md` to match the ac
 | Trigger changed       | Update Trigger column |
 | Purpose changed       | Update Purpose column |
 | Conventions outdated  | Update Conventions    |
+| `trigger_branch` in Config differs from actual default branch | Update `trigger_branch` in Config to match |
 
 ### Presentation for review
 
@@ -226,8 +241,8 @@ If there are updates, present a table:
 
 | Action   | Workflow             | Field    | Old value      | New value                |
 |----------|----------------------|----------|----------------|--------------------------|
-| add      | `security.yml`       | —        | —              | push to main, scan deps  |
-| modify   | `tests.yml`          | Trigger  | push to main   | push/PR to main          |
+| add      | `security.yml`       | —        | —              | push to <default_branch>, scan deps  |
+| modify   | `tests.yml`          | Trigger  | push to <default_branch>   | push/PR to <default_branch>          |
 | remove   | `legacy-deploy.yml`  | —        | tag v*         | —                        |
 
 Wait for user approval. Record only approved changes.
@@ -238,6 +253,7 @@ Wait for user approval. Record only approved changes.
 2. **modify** — update existing rows
 3. **remove** — delete rows corresponding to deleted workflows
 4. Do not modify Config and other sections of devops.md
+5. Verify that `trigger_branch` in Config matches the actual project default branch (determined from `.qarium/ai/employees/lead.md` Config or `git symbolic-ref refs/remotes/origin/HEAD`). If they differ — present an update in the review table with action `modify`.
 
 ### Summary and optimization
 
@@ -296,6 +312,8 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 | qa.md exists with `lint_cmd` + no lint workflow           | **missing** — lint workflow needed  |
 | qa.md exists with `run_tests_cmd` + no tests workflow     | **missing** — tests workflow needed |
 | tech-writer.md exists with `build_cmd` + no docs workflow | **missing** — docs workflow needed  |
+| strictacode in optional-dependencies + no strictacode workflow | **missing** -- strictacode workflow needed |
+| strictacode workflow exists + no `.strictacode.yml`           | **missing** -- config file needed          |
 
 ### Audit report
 
@@ -345,3 +363,5 @@ Generate a table:
 | Writing changes to devops.md without approval                      | Always present changes for review before writing                                         |
 | Skipping audit when CI and project discrepancies are suspected     | Run Phase 7 for systematic desync detection                                              |
 | Ignoring orphan workflows during audit                             | Always suggest adding them to the Workflow Registry                                      |
+| Running `pip`/`python` without virtualenv activation | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
+| Forgetting to create `.strictacode.yml` alongside workflow | Always check for `.strictacode.yml` when creating strictacode workflow                  |

@@ -28,22 +28,22 @@ digraph doc_skill {
     mapping_check [label="Phase 0: Mapping empty?" shape=diamond];
     fill_mapping [label="Fill Mapping" shape=box];
     mode [label="Mode?" shape=diamond];
-    config [label="Read .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
-    diff [label="git diff --name-only ref...HEAD" shape=box];
+    config [label="Phase 1: Load Config\nRead .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
+    diff [label="Phase 2: Change detection\ngit diff --name-only ref...HEAD" shape=box];
     filter [label="Filter: exclude tests, plans, CI, configs" shape=box];
-    map [label="Match changed files with mapping" shape=box];
+    map [label="Phase 3: Mapping matching\nMatch changed files with mapping" shape=box];
     unmapped [label="Unmapped files?" shape=diamond];
     propose [label="Propose mapping update" shape=box];
-    plan [label="Generate update plan table" shape=box];
+    plan [label="Phase 4: Present update plan\nGenerate update plan table" shape=box];
     confirm [label="User confirmed plan" shape=diamond];
-    audit [label="Cross-check sources and documentation\nGenerate audit report" shape=box];
+    audit [label="Phase 9: Audit\nCross-check sources and documentation\nGenerate audit report" shape=box];
     audit_fix [label="User selects fixes" shape=box];
-    read_src [label="Read source files for accurate data" shape=box];
-    new_page [label="Ask for structure, create page" shape=box];
-    update [label="Update existing pages" shape=box];
+    read_src [label="Phase 5: Read source code\nRead source files for accurate data" shape=box];
+    new_page [label="Phase 7: Create new pages\nAsk for structure, create page" shape=box];
+    update [label="Phase 6: Update existing pages" shape=box];
     examples [label="Update examples if needed" shape=box];
     nav [label="Update mkdocs.yml" shape=box];
-    build [label="Run build_cmd" shape=box];
+    build [label="Phase 8: Validation\nRun build_cmd" shape=box];
     review [label="Check consistency" shape=box];
     done [label="Done" shape=box];
 
@@ -79,6 +79,17 @@ digraph doc_skill {
 **DO NOT use when:**
 - User explicitly asked to skip documentation
 - There is no Mapping and the user does not want to create one
+
+## Virtual Environment
+
+Before executing any shell commands (mkdocs), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to Phase 8 (build_cmd).
 
 ## Phase 0: Fill Mapping
 
@@ -154,7 +165,12 @@ This section contains documentation writing practices (tone, formatting). It may
 
 1. Determine the base reference for comparison:
    - If the skill is invoked with an argument — use it as the base reference (e.g., `origin/pr/42`, `v1.2`)
-   - If no argument — use `main` as the default base reference
+   - If no argument — determine `default_branch`:
+     1. Read `base_branch` from `.qarium/ai/employees/tech-writer.md` Config
+     2. If not found, read `default_branch` from `.qarium/ai/employees/lead.md` Config
+     3. If not found, try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null`
+     4. If not resolved → `master` (fallback)
+     5. Use the resolved branch name as the base reference
 2. Run `git diff --name-only <base>...HEAD` to get changed files
 3. If diff is empty, notify the user and stop
 4. Exclude paths that do not affect documentation:
@@ -436,3 +452,5 @@ Check the integrity of the custom MkDocs Material theme:
 | Forgetting to check README.md during audit                               | Always check README.md separately from the Mapping audit            |
 | Skipping `docs/overrides/main.html` audit                                | Always check theme overrides integrity                              |
 | Deleting or overwriting `docs/overrides/main.html` during updates        | Do not touch overrides when updating documentation                  |
+| Using hardcoded `main` as default base reference                        | Always determine from tech-writer.md Config, lead.md Config, or git; fallback to `master` |
+| Running `mkdocs` without virtualenv activation                          | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
