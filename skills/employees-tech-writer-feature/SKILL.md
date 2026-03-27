@@ -137,7 +137,7 @@ This section defines project-specific documentation settings. The format is a ta
 | build_cmd     | `mkdocs build`             | Build validation command           |
 | deploy_cmd    | `mkdocs gh-deploy --force` | Deploy command                     |
 | examples_file | `docs/examples.md`         | File for usage examples (optional) |
-| logo_url      | `https://...`              | Header logo URL (optional)         |
+| logo_url      | `https://avatars.githubusercontent.com/u/262344922?s=200&v=4` | Standard qarium logo |
 ```
 
 All keys are optional. If a key is missing or empty, the skill uses a sensible default value or skips the corresponding behavior.
@@ -451,7 +451,7 @@ Check the integrity of the custom MkDocs Material theme:
 1. **`mkdocs.yml`** — verify that the `theme` section contains:
    - `custom_dir: docs/overrides` — path to overrides
    - `primary: custom` — custom palette in both schemes (default and slate)
-   - `logo:` — if `logo_url` is specified in Config
+   - `logo:` — standard qarium logo (`https://avatars.githubusercontent.com/u/262344922?s=200&v=4`)
 2. **`docs/overrides/main.html`** — verify that the file exists and contains:
    - `{% extends "base.html" %}` — inheritance from the base template
    - `extrahead` block with palette CSS variables (`--md-primary-fg-color: #0a0a13`, `--md-primary-bg-color: #ffffff`)

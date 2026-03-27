@@ -39,7 +39,7 @@ digraph flow {
     rankdir=LR;
     analyze [label="Phase 1: Project analysis\ntype, dependencies, Python version, source structure" shape=box];
     structure [label="Phase 2: Structure proposal\nsource analysis → pages" shape=box];
-    config [label="Phase 3: Configuration\nbuild_cmd, deploy_cmd, examples_file" shape=box];
+    config [label="Phase 3: Configuration\nbuild_cmd, deploy_cmd, examples_file, base_branch" shape=box];
     create [label="Phase 4: Structure creation\nmkdocs.yml, docs/, nav" shape=box];
     install [label="Phase 5: Installation and verification\npip install, build_cmd" shape=box];
     rules [label="Phase 6: Write .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
@@ -71,7 +71,6 @@ Collecting information about the current state of the project.
 6. **Dependency group name** — check `[project.optional-dependencies]` for existing groups with documentation tools. Remember the group name (e.g., `docs`). If nothing is found, default to `docs`.
 7. **Source structure** — scan the source directory to understand modules, CLI commands, configuration, API. This information is used in Phase 2 for proposing documentation structure.
 8. **.gitignore** — check if `docs/plans/` is in `.gitignore`
-9. **GitHub repository** — extract the organization/user from the URL in `pyproject.toml [project.urls]` or from `git remote`. Used to form the default logo URL: `https://avatars.githubusercontent.com/u/<org_or_user_id>?s=200&v=4`. If the repository is not on GitHub — leave the logo empty.
 
 Present a summary to the user before proceeding to Phase 2.
 
@@ -122,8 +121,7 @@ Ask the user to confirm or adjust documentation settings.
 | 1 | `build_cmd`     | `mkdocs build`             | Build validation command            |
 | 2 | `deploy_cmd`    | `mkdocs gh-deploy --force` | Documentation deploy command        |
 | 3 | `examples_file` | none (optional)            | File for usage examples             |
-| 4 | `logo_url`      | GitHub avatar from Phase 1 | Header logo URL (optional)          |
-| 5 | `base_branch`   | auto (from lead.md or git) | Base branch for git diff comparison |
+| 4 | `base_branch`   | auto (from lead.md or git) | Base branch for git diff comparison |
 
 > **`base_branch` determination algorithm:**
 > 1. Read `default_branch` from `.qarium/ai/employees/lead.md` Config
@@ -151,7 +149,7 @@ edit_uri: edit/<default_branch>/docs/
 theme:
   name: material
   custom_dir: docs/overrides
-  logo: <from Phase 3, logo_url>
+  logo: https://avatars.githubusercontent.com/u/262344922?s=200&v=4
   palette:
     - scheme: default
       primary: custom
@@ -180,7 +178,7 @@ nav:
   ...
 ```
 
-If `logo_url` is not specified — skip the `logo:` line. Navigation is formed from the approved page list from Phase 2.
+If `logo_url` is not specified — skip the `logo:` line. The logo is always the standard qarium logo and is never asked of the user. Navigation is formed from the approved page list from Phase 2.
 
 ### Theme overrides
 
@@ -331,7 +329,7 @@ Create the tech writer configuration file. The file is written in English.
 | build_cmd     | `mkdocs build`             | Build validation command            |
 | deploy_cmd    | `mkdocs gh-deploy --force` | Deploy command                      |
 | examples_file | `docs/examples.md`         | File for usage examples (optional)  |
-| logo_url      | `https://...`              | Header logo URL (optional)          |
+| logo_url      | `https://avatars.githubusercontent.com/u/262344922?s=200&v=4` | Standard qarium logo |
 | base_branch   | `master`                   | Base branch for git diff comparison |
 
 ## Rules
@@ -350,8 +348,8 @@ Create the tech writer configuration file. The file is written in English.
 ```
 
 - Fill in Config values from the user's choices in Phase 3
+- `logo_url` is always the standard qarium logo: `https://avatars.githubusercontent.com/u/262344922?s=200&v=4`
 - If `examples_file` is left as optional — use an empty value in the table
-- If `logo_url` is left as optional — use an empty value in the table
 - Mapping — empty template (table header only), will be filled in subsequent flow calls
 - Conventions — empty placeholder for future expansion
 
@@ -380,6 +378,7 @@ Create the tech writer configuration file. The file is written in English.
 | Forgetting `custom_dir` and `primary: custom` in mkdocs.yml     | The mkdocs.yml template in Phase 4 contains these settings                             |
 | Running `pip`/`mkdocs` without virtualenv activation            | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`                             |
+| Asking user for logo URL                                        | Always use the standard qarium logo, never ask the user                               |
 
 ## Phase 7: Retrospective
 
