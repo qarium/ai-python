@@ -170,6 +170,10 @@ After writing, read the file back for verification.
 | Examples tied to a specific project               | Use generic examples, not from the current project                      |
 | Skipping default_branch detection in Phase 1      | Always detect via git or ask the user; other roles depend on this value |
 | Forgetting to include Config in the file template | Config section must always be present in lead.md                        |
+| Hardcoding `version = "0.1.0"` in `[project]`     | Always use `dynamic = ["version"]` with setuptools-scm                   |
+| Using `setuptools>=75.0` in `[build-system]`      | Use `setuptools>=61.0` as minimum version                               |
+| Missing `include` in `[tool.setuptools.packages.find]` | Always set `include = ["<package_name>*"]` based on the main package directory |
+| Leaving `uv.lock` in the project after setup      | Delete `uv.lock` if it was created — it must not be committed            |
 
 ## Phase 5: Retrospective
 
