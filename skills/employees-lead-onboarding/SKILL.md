@@ -182,7 +182,6 @@ After writing, read the file back for verification.
 | Hardcoding `version = "0.1.0"` in `[project]`     | Always use `dynamic = ["version"]` with setuptools-scm                   |
 | Using `setuptools>=75.0` in `[build-system]`      | Use `setuptools>=61.0` as minimum version                               |
 | Missing `include` in `[tool.setuptools.packages.find]` | Always set `include = ["<package_name>*"]` based on the main package directory |
-| Leaving `uv.lock` in the project after setup      | Delete `uv.lock` if it was created — it must not be committed            |
 
 ## Phase 5: Retrospective
 

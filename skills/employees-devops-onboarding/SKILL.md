@@ -110,6 +110,8 @@ Check and create minimum settings for package publication.
 
 If any settings are missing -- suggest adding them and wait for user confirmation.
 
+7. After modifying `pyproject.toml`, check if `uv.lock` was created in the project root. If found -- delete it. It must not be committed.
+
 ## Phase 3: Required Workflow Detection
 
 Automatically determine which workflows the project needs, based on Phase 1:
@@ -119,7 +121,7 @@ Automatically determine which workflows the project needs, based on Phase 1:
 | Lint        | `[tool.ruff]` found in pyproject.toml AND qa.md exists (contains `lint_cmd`)          |
 | Tests       | qa.md exists (contains `run_tests_cmd`)                                               |
 | Docs        | tech-writer.md exists (contains `build_cmd`)                                          |
-| Publish     | `[build-system]` and `[project]` with `version` exist in pyproject.toml               |
+| Publish     | `[build-system]` and `[project]` with `name` exist in pyproject.toml                |
 | Strictacode | `strictacode` found in `[project.optional-dependencies]` or user explicitly requested |
 
 Present the detected set to the user. The user can:
