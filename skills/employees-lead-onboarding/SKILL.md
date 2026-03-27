@@ -42,7 +42,16 @@ digraph flow {
 
 Collecting information about the current state of the Python project.
 
-1. **Project metadata** — read `pyproject.toml` (if it does not exist — suggest the user invoke `qarium:employees:devops` for project setup, and stop) and extract:
+1. **Project metadata** — read `pyproject.toml`. If it does not exist — create a minimal `pyproject.toml`:
+   - Determine project name from the main package directory (Phase 1 step 2)
+   - Build system: `setuptools>=61.0` + `setuptools-scm>=8.0`, backend `setuptools.build_meta`
+   - `dynamic = ["version"]` — never hardcode version
+   - `[tool.setuptools.packages.find]` with `include = ["<package_name>*"]`
+   - `requires-python`: ask the user (default `>=3.10`)
+   - `license`: ask the user (MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip) — format `{text = "..."}`
+   - `classifiers`: generate based on `requires-python` (all Python minor versions from minimum to 3.14)
+   - Do NOT create CI workflows — that is devops responsibility
+   If `pyproject.toml` exists — extract:
    - Project name (`[project.name]`)
    - Project type: library (no `scripts`), CLI application (with `[project.scripts]` or click/typer), web application (fastapi/django/flask)
    - Build system from `[build-system]` requires: setuptools/hatchling/poetry-core/flit-core/pdm-backend
