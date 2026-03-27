@@ -93,17 +93,18 @@ Check and create minimum settings for package publication.
 1. `[build-system]` -- must contain `requires` and `build-backend`. If missing, suggest adding:
    ```toml
    [build-system]
-   requires = ["setuptools>=75.0", "setuptools-scm>=8.0"]
+   requires = ["setuptools>=61.0", "setuptools-scm>=8.0"]
    build-backend = "setuptools.build_meta"
    ```
-2. `[project]` -- must contain `name`, `version`, `description`. If missing, suggest adding a minimal configuration.
-3. `requires-python` -- if missing, ask the user for the minimum Python version (default `>=3.10`).
-4. `classifiers` -- if missing, offer to generate based on `requires-python`:
+2. `[project]` -- must contain `name`, `description`. Version must be dynamic via `setuptools-scm`. If missing, suggest adding a minimal configuration with `dynamic = ["version"]`. Never hardcode `version = "0.1.0"` or any static version.
+3. `[tool.setuptools.packages.find]` -- must include the main package by name. Determine the package name from the directory with `__init__.py` in the project root (Phase 1 step 3). Add `include = ["<package_name>*"]`.
+4. `requires-python` -- if missing, ask the user for the minimum Python version (default `>=3.10`).
+5. `classifiers` -- if missing, offer to generate based on `requires-python`:
    - All Python minor versions from minimum to 3.14 (inclusive)
    - `Development Status :: 3 - Alpha` for version `0.x`, `4 - Beta` for `1.x`
    - `Intended Audience :: Developers` for library or CLI projects
    - Only include versions >= minimum from `requires-python`
-5. `license` -- if missing, ask the user to choose: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip.
+6. `license` -- if missing, ask the user to choose: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip.
    - Format: `license = {text = "MIT"}` (PEP 639, requires setuptools>=69)
    - Always use `{text = "..."}` format, never `{file = "LICENSE"}`
 
@@ -308,9 +309,12 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
 ```
 
 - Configure the Python version in the build step based on `requires-python` from Phase 1.
+- Always include `with: password: ${{ secrets.PYPI_API_TOKEN }}` for the publish step.
 - Do not use `fetch-depth: 0` without an explicit reason.
 
 ### Strictacode Workflow
@@ -470,6 +474,10 @@ Onboarding creates CI/CD infrastructure from scratch. The onboarding skill itsel
 | Running `pip`/`python` without virtualenv activation                         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
 | Overwriting existing `.strictacode.yml`                                      | Check before creating -- only create if the file does not exist                           |
 | Hardcoding `main` or `master` as trigger branch                              | Always determine from Phase 1 step 1.5 (lead.md Config or git auto-detect)                |
+| Hardcoding `version = "0.1.0"` in `[project]`                                | Always use `dynamic = ["version"]` with setuptools-scm                                     |
+| Missing `include` in `[tool.setuptools.packages.find]`                        | Always set `include = ["<package_name>*"]` based on the main package directory            |
+| Leaving `uv.lock` in the project after setup                                 | Delete `uv.lock` if it was created during onboarding — it must not be committed            |
+| Missing `password` in publish workflow                                        | Always add `with: password: ${{ secrets.PYPI_API_TOKEN }}` to pypa/gh-action-pypi-publish |
 
 ## Phase 7: Retrospective
 
