@@ -178,7 +178,7 @@ nav:
   ...
 ```
 
-If `logo_url` is not specified — skip the `logo:` line. The logo is always the standard qarium logo and is never asked of the user. Navigation is formed from the approved page list from Phase 2.
+The `logo:` line uses the standard qarium logo URL and is always written. Navigation is formed from the approved page list from Phase 2.
 
 ### Theme overrides
 
