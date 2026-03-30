@@ -7,13 +7,23 @@ Before doing anything, check `.qarium/ai/employees/lead.md`:
 1. Does the file exist?
 2. If it exists — does it contain filled sections (not just `<!-- empty -->`)? The marker is the presence of entries in at least one of the sections `## Architecture & Decisions`, `## Project Structure`, or `## Code Patterns`.
 
-**File does not exist or sections are empty** — invoke the `employees-lead-onboarding` skill and follow it from start to finish: analyze the project, fill in the Architecture & Decisions, Project Structure, Code Patterns sections, present for review, write to `.qarium/ai/employees/lead.md`. TODO and LLM Directives will remain empty — feature will fill them later. After onboarding completes, work is done — feature is not called automatically, because onboarding extracts knowledge from code, while feature extracts from conversation. To accumulate knowledge from the current session, the user must invoke `/qarium:employees:lead` again.
+**File does not exist or sections are empty** — invoke the `employees-lead-onboarding` skill and follow it from start to finish.
 
-**File exists with filled sections** — invoke the `employees-lead-feature` skill and follow it from start to finish: scan conversation context and git diff, analyze strictacode (if installed), extract and categorize knowledge, present review with problems and solution options, add approved entries to `.qarium/ai/employees/lead.md`, summarize and compress. If argument is `audit` — invoke feature in audit mode: cross-check lead.md against actual codebase state + strictacode summary, without conversation analysis or git diff.
+**File exists with filled sections** — ask the user:
+
+> What do you want to do?
+> - **feature** — review changes, extract knowledge, update lead.md
+> - **audit** — check lead.md and project files against template and conventions
+
+Based on the user's choice:
+
+- **feature** — invoke the `employees-lead-feature` skill: scan conversation context and git diff, analyze strictacode (if installed), extract and categorize knowledge, present review with problems and solution options, add approved entries to `.qarium/ai/employees/lead.md`, summarize and compress.
+
+- **audit** — invoke the `employees-lead-audit` skill: compare project files against template, check lead.md Config and conventions, report discrepancies and suggest fixes.
 
 Arguments: $ARGUMENTS
 
-If arguments are provided — use them as context for knowledge search. If argument is `audit` — cross-check lead.md with codebase + strictacode summary. If empty — analyze the entire conversation and git diff.
+If arguments are provided — use them as context for knowledge search. If empty — analyze the entire conversation and git diff.
 
 Remember the original arguments throughout the session.
 

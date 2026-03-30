@@ -1,14 +1,14 @@
 ---
 name: employees-qa:onboarding
-description: Used when a Python project has no test infrastructure — no tests/ directory, no Rules section in .qarium/ai/employees/qa.md. Configures pytest + ruff, configures pyproject.toml, creates test structure, and writes all sections to qa.md.
+description: Used when a Python project has no test infrastructure — no tests/ directory, no Rules section in .qarium/ai/employees/qa.md. Processes QA_* placeholders from template, configures pytest + ruff, creates test structure, and writes all sections to qa.md.
 ---
 
 # QA Onboarding
 
 ## Overview
 
-Setting up project test infrastructure from scratch.
-Analyzes a Python project, configures pytest + ruff as the standard stack, generates a complete pyproject.toml configuration, creates a test structure, and writes all sections to `.qarium/ai/employees/qa.md` for future sessions.
+Setting up project test infrastructure.
+Processes `${QA_*}` placeholders in template files, configures pytest + ruff, creates test structure, and writes all sections to `.qarium/ai/employees/qa.md` for future sessions.
 
 ## When to use
 
@@ -21,6 +21,21 @@ Analyzes a Python project, configures pytest + ruff as the standard stack, gener
 - This is not a Python project
 - The project has no `pyproject.toml` — explain that onboarding only works with pyproject.toml and stop
 - `.qarium/ai/employees/qa.md` already has a `## Rules` section — warn the user and suggest using `qarium:employees:qa:feature`
+
+## Template
+
+This skill processes `${QA_*}` placeholders that were left by the lead onboarding in template files.
+
+### Placeholder processing
+
+Read project files and find all `${QA_*}` placeholders:
+
+| Variable | Expected in | How to compute |
+|----------|-------------|----------------|
+| QA_PACKAGE_SNAKE | `pyproject.toml` (ruff.src, coverage.source) | Read `[project.name]` from pyproject.toml, convert to snake_case |
+| QA_TARGET_VERSION | `pyproject.toml` (ruff.target-version) | Derive from `requires-python` (e.g. `>=3.10` → `py310`) |
+
+Replace the entire `${QA_VARIABLE:="prompt"}` with the computed value. Do NOT modify `${LEAD_*}`, `${DEVOPS_*}`, `${TECH_WRITER_*}` placeholders.
 
 ## Virtual Environment
 
@@ -90,68 +105,24 @@ The user can accept the defaults or enter their own values. One screen, one ques
 
 ## Phase 3: Configuration generation
 
+### Process QA_* placeholders
+
+Before adding new sections, process remaining `${QA_*}` placeholders in `pyproject.toml`:
+1. Find `${QA_PACKAGE_SNAKE:="..."}` — replace with actual snake_case package name
+2. Find `${QA_TARGET_VERSION:="..."}` — replace with derived target version
+3. Verify no `${QA_*}` placeholders remain
+
 ### pyproject.toml
 
-Write or update sections following the strictacode reference. If sections already exist — merge, do not overwrite.
+**If `${QA_*}` placeholders were found and processed** — all sections already exist from the template. Skip this step.
 
-**Dependencies** (add to `[project.optional-dependencies] <group>`):
-```toml
-<group> = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.15.0"]
-```
+**If no `${QA_*}` placeholders found** (existing project without template) — add missing sections to `pyproject.toml`. Use `.claude/templates/library/src/{{lead:pyproject}}.toml` lines 45-86 as reference for the expected structure (pytest, coverage, ruff). Adapt values from Phase 1 analysis:
+- `target-version` — from Python version in Phase 1
+- `src` and `source` — from package name in Phase 1
+- `testpaths` — `["tests"]`
+- Dependency group — from group name determined in Phase 1
 
-If the group already contains any of these dependencies — do not duplicate.
-
-**pytest** (`[tool.pytest.ini_options]`):
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --tb=short"
-```
-
-**coverage** (`[tool.coverage.run]` + `[tool.coverage.report]`):
-```toml
-[tool.coverage.run]
-source = ["<package_name>"]
-branch = true
-
-[tool.coverage.report]
-show_missing = true
-skip_empty = true
-```
-
-**ruff** (`[tool.ruff]`, `[tool.ruff.lint]`, `[tool.ruff.format]`):
-```toml
-[tool.ruff]
-target-version = "py<ver>"  # from requires-python in Phase 1
-line-length = 120
-src = ["<package_name>"]
-
-[tool.ruff.lint]
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "I",    # isort
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "SIM",  # flake8-simplify
-    "C4",   # flake8-comprehensions
-    "DTZ",  # flake8-datetimez
-    "PT",   # flake8-pytest-style
-]
-ignore = [
-    "UP045", # `X | None` — not compatible with Python 3.10 dataclass fields, use `typing.Optional`
-]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "S101",   # assert allowed in tests
-]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-```
+Merge with existing sections, do not overwrite. If sections already contain values — read them and use as-is.
 
 ### Test directory structure
 
@@ -292,6 +263,7 @@ Include the **CLI Testing** subsection only if the project type is a CLI applica
 | Skipping empty tables in qa.md                                      | Always create Mock Patterns and Helpers with empty tables — the flow will fill them later |
 | Running `pip`/`pytest`/`ruff` without virtualenv activation         | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>`    |
 | Skipping the Config section                                         | Config is always filled with commands from Phase 2                                        |
+| Leaving `${QA_*}` placeholders in pyproject.toml                    | All QA_* placeholders must be resolved in Phase 3                                         |
 
 ## Phase 6: Retrospective
 

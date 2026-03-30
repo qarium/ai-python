@@ -1,0 +1,43 @@
+name: Strictacode
+
+on:
+  push:
+    branches:
+      - ${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}
+  pull_request:
+    branches:
+      - ${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - uses: qarium/strictacode/.github/actions/analyze@master
+        with:
+          install-cmd: pip install strictacode
+          working-directory: ${DEVOPS_PACKAGE_SNAKE:="package dir in snake_case from pyproject.toml."}
+        env:
+          STRICTACODE_SCORE: ${DEVOPS_SC_SCORE:="40. Ask user for threshold."}
+          STRICTACODE_RP: ${DEVOPS_SC_RP:="40. Ask user for threshold."}
+          STRICTACODE_SCORE_DIFF: ${DEVOPS_SC_SCORE_DIFF:="3. Ask user for threshold."}
+          STRICTACODE_RP_DIFF: ${DEVOPS_SC_RP_DIFF:="5. Ask user for threshold."}
+          STRICTACODE_OP: ${DEVOPS_SC_OP:="40. Ask user for threshold."}
+          STRICTACODE_IMB: ${DEVOPS_SC_IMB:="35. Ask user for threshold."}
+          STRICTACODE_DENSITY: ${DEVOPS_SC_DENSITY:="30. Ask user for threshold."}
+          STRICTACODE_OP_DIFF: ${DEVOPS_SC_OP_DIFF:="5. Ask user for threshold."}
+          STRICTACODE_DENSITY_DIFF: ${DEVOPS_SC_DENSITY_DIFF:="3. Ask user for threshold."}

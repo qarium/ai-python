@@ -1,14 +1,14 @@
 ---
 name: employees-tech-writer:onboarding
-description: Used when a Python project has no documentation infrastructure — no docs/ directory with content, no .qarium/ai/employees/tech-writer.md file. Sets up MkDocs, creates documentation structure, and records configuration in .qarium/ai/employees/tech-writer.md.
+description: Used when a Python project has no documentation infrastructure — no docs/ directory with content, no .qarium/ai/employees/tech-writer.md file. Processes TECH_WRITER_* placeholders from template, sets up MkDocs, creates documentation structure, and records configuration in .qarium/ai/employees/tech-writer.md.
 ---
 
 # Tech Writer Onboarding
 
 ## Overview
 
-Setting up project documentation infrastructure from scratch.
-Analyzes the Python project, proposes documentation structure based on source code, creates MkDocs structure, and records configuration in `.qarium/ai/employees/tech-writer.md` for future sessions.
+Setting up project documentation infrastructure.
+Processes `${TECH_WRITER_*}` placeholders in template files, creates MkDocs documentation structure, and records configuration in `.qarium/ai/employees/tech-writer.md` for future sessions.
 
 MkDocs is the only static site generator. No choice is offered.
 
@@ -22,6 +22,27 @@ MkDocs is the only static site generator. No choice is offered.
 - The project already has documentation with content and `.qarium/ai/employees/tech-writer.md` exists — use `qarium:employees:tech-writer:feature`
 - This is not a Python project
 - `.qarium/ai/employees/tech-writer.md` already exists — warn the user and suggest using `qarium:employees:tech-writer:feature`
+
+## Template
+
+This skill processes `${TECH_WRITER_*}` placeholders that were left by the lead onboarding in template files.
+
+### Placeholder processing
+
+Read project files and find all `${TECH_WRITER_*}` placeholders:
+
+| Variable | Expected in | How to compute |
+|----------|-------------|----------------|
+| TECH_WRITER_SITE_NAME | `mkdocs.yml` | Read `[project.name]` from pyproject.toml |
+| TECH_WRITER_SITE_DESCRIPTION | `mkdocs.yml` | Read `[project.description]` from pyproject.toml |
+| TECH_WRITER_SITE_URL | `mkdocs.yml` | Read `[project.urls] Homepage` from pyproject.toml, or leave empty |
+| TECH_WRITER_REPO_URL | `mkdocs.yml` | From `git remote` or pyproject.toml |
+| TECH_WRITER_QUICK_START | `README.md` | Based on source analysis — CLI command, basic usage example |
+| TECH_WRITER_DOCS_LINK | `README.md` | Link to site_url or relative `./docs/` |
+
+Also process `${DEVOPS_TRIGGER_BRANCH}` in `mkdocs.yml` if it's still a placeholder — read `default_branch` from `.qarium/ai/employees/lead.md` Config or determine via git.
+
+Replace the entire `${VARIABLE:="prompt"}` with the computed value. Do NOT modify `${QA_*}`, `${DEVOPS_*}` placeholders (unless explicitly noted above).
 
 ## Virtual Environment
 
@@ -40,7 +61,7 @@ digraph flow {
     analyze [label="Phase 1: Project analysis\ntype, dependencies, Python version, source structure" shape=box];
     structure [label="Phase 2: Structure proposal\nsource analysis → pages" shape=box];
     config [label="Phase 3: Configuration\nbuild_cmd, deploy_cmd, examples_file, base_branch" shape=box];
-    create [label="Phase 4: Structure creation\nmkdocs.yml, docs/, nav" shape=box];
+    process [label="Phase 4: Process placeholders\nTECH_WRITER_* + create doc pages" shape=box];
     install [label="Phase 5: Installation and verification\npip install, build_cmd" shape=box];
     rules [label="Phase 6: Write .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
     retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
@@ -48,8 +69,8 @@ digraph flow {
 
     analyze -> structure;
     structure -> config;
-    config -> create;
-    create -> install;
+    config -> process;
+    process -> install;
     install -> rules;
     rules -> retro;
     retro -> done;
@@ -130,165 +151,32 @@ Ask the user to confirm or adjust documentation settings.
 
 After all choices, present the full configuration summary and request confirmation before Phase 4.
 
-## Phase 4: Structure Creation
+## Phase 4: Process Placeholders and Create Structure
 
-Create documentation files based on the approved choices.
+### Process TECH_WRITER_* placeholders
 
-### MkDocs
+Read each file copied from template and replace `${TECH_WRITER_*}` placeholders:
 
-Create `mkdocs.yml` (if it does not exist):
-```yaml
-docs_dir: docs
+1. **`mkdocs.yml`** — replace all `${TECH_WRITER_*}` and `${DEVOPS_TRIGGER_BRANCH}` placeholders
+2. **`README.md`** — replace all `${TECH_WRITER_*}` and remaining `${LEAD_*}` placeholders
 
-site_name: <from pyproject.toml [project.name]>
-site_description: <from pyproject.toml [project.description]>
-site_url: <from pyproject.toml [project.urls.Homepage] or leave empty>
-repo_url: <from git remote or pyproject.toml>
-edit_uri: edit/<default_branch>/docs/
+Verify no `${TECH_WRITER_*}` placeholders remain.
 
-theme:
-  name: material
-  custom_dir: docs/overrides
-  logo: https://avatars.githubusercontent.com/u/262344922?s=200&v=4
-  palette:
-    - scheme: default
-      primary: custom
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-        media: "(prefers-color-scheme: light)"
-    - scheme: slate
-      primary: custom
-      accent: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-        media: "(prefers-color-scheme: dark)"
-  features:
-    - navigation.tabs
-    - navigation.indexes
-    - search.suggest
-    - search.highlight
-    - content.code.copy
+### Update mkdocs.yml navigation
 
-nav:
-  - Home: index.md
-  - Getting Started: getting-started.md
-  ...
-```
+Update the `nav` section in `mkdocs.yml` to match the approved page list from Phase 2.
 
-The `logo:` line uses the standard qarium logo URL and is always written. Navigation is formed from the approved page list from Phase 2.
-
-### Theme overrides
-
-Create `docs/overrides/main.html` (if it does not exist):
-```html
-{% extends "base.html" %}
-
-{% block extrahead %}
-  {{ super() }}
-  <style>
-    /* Dark navbar — override palette in both themes */
-    [data-md-color-scheme=default][data-md-color-primary=custom],
-    [data-md-color-scheme=slate][data-md-color-primary=custom] {
-      --md-primary-fg-color: #0a0a13;
-      --md-primary-fg-color--light: #0a0a13cc;
-      --md-primary-bg-color: #ffffff;
-    }
-
-    .md-header__button.md-logo img,
-    .md-header__button.md-logo svg {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-    }
-
-    /* Search form — visible on dark header */
-    .md-search__overlay {
-      background-color: transparent !important;
-    }
-    [data-md-toggle=search]:checked~.md-header .md-search__overlay {
-      background-color: #0000008a !important;
-    }
-    .md-search__inner {
-      background-color: transparent !important;
-    }
-    .md-search__form {
-      background-color: #3a3a3a !important;
-      border-radius: 0.5rem;
-    }
-    .md-search__form:hover {
-      background-color: #4a4a4a !important;
-    }
-    .md-search__input {
-      color: #e0e0e0 !important;
-    }
-    .md-search__input::placeholder {
-      color: #999999 !important;
-    }
-    .md-search__icon {
-      color: #999999 !important;
-    }
-    .md-search__form:hover .md-search__icon,
-    .md-search__input:focus-visible ~ .md-search__icon {
-      color: #e0e0e0 !important;
-    }
-
-    /* Links in dark theme — readable on dark background */
-    [data-md-color-scheme=slate] .md-nav__link,
-    [data-md-color-scheme=slate] .md-toc__link,
-    [data-md-color-scheme=slate] article a {
-      color: #cbd5e0 !important;
-    }
-    [data-md-color-scheme=slate] .md-nav__link--passed,
-    [data-md-color-scheme=slate] .md-toc__link--passed {
-      color: #718096 !important;
-    }
-    [data-md-color-scheme=slate] .md-nav__link:hover,
-    [data-md-color-scheme=slate] .md-toc__link:hover,
-    [data-md-color-scheme=slate] article a:hover {
-      color: var(--md-accent-fg-color) !important;
-    }
-  </style>
-{% endblock %}
-```
-
-Create the `docs/overrides/` directory if it does not exist.
+### Create documentation pages
 
 Create all approved pages as stub files with a heading — the page name.
 
 ### README.md
 
-Create or overwrite `README.md`:
+If README.md still contains `${LEAD_*}` placeholders (lead onboarding left them), process those too:
+- `${LEAD_PACKAGE_NAME}` — from pyproject.toml
+- `${LEAD_DESCRIPTION}` — from pyproject.toml
 
-- **Does not exist** — create from template
-- **Standard git template** (minimal content, no project description) — overwrite from template
-- **Full content** (project description, sections) — skip, do not overwrite
-
-`README.md` template:
-
-```markdown
-# <project name from pyproject.toml>
-
-<description from pyproject.toml>
-
-## Installation
-
-\```bash
-pip install <project name>
-\```
-
-## Quick Start
-
-[Brief usage example based on project type and Phase 1 source analysis]
-
-## Documentation
-
-Full documentation is available at [link to site_url from pyproject.toml or ./docs/]
-```
-
-The template is in English. The "Installation" section and description are filled from `pyproject.toml`. The "Quick Start" section is filled based on the source analysis from Phase 1 (CLI command, basic library usage example, etc.).
+If README.md was already fully processed by lead — skip, do not overwrite.
 
 ### Rules
 
@@ -379,6 +267,7 @@ Create the tech writer configuration file. The file is written in English.
 | Running `pip`/`mkdocs` without virtualenv activation            | Always check for `.venv/` or `venv/` and use `source <venv>/bin/activate && <command>` |
 | Hardcoding `main` as base branch in Config                      | Always determine from lead.md or git; fallback to `master`                             |
 | Asking user for logo URL                                        | Always use the standard qarium logo, never ask the user                               |
+| Leaving `${TECH_WRITER_*}` placeholders in files                | All TECH_WRITER_* placeholders must be resolved in Phase 4                             |
 
 ## Phase 7: Retrospective
 

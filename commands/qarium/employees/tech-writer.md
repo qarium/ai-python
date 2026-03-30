@@ -7,13 +7,22 @@ Before doing anything, determine whether the project has documentation infrastru
 1. Check if the `docs/` directory exists **and contains at least one `.md` or `.rst` file**
 2. Check if the file `.qarium/ai/employees/tech-writer.md` exists
 
-**Both conditions met** — invoke the `employees-tech-writer-feature` skill and follow it from start to finish: check Mapping, load project configuration and mapping rules, identify changes, match against documentation, propose updates for unmapped files, present update plan, get user confirmation, read source code for accurate data, update/create pages, verify with configured build command.
+**Both conditions met** — ask the user:
+
+> What do you want to do?
+> - **feature** — update documentation for code changes
+> - **audit** — check documentation against template, verify config and conventions
+
+Based on the user's choice:
+
+- **feature** — invoke the `employees-tech-writer-feature` skill: check Mapping, load project configuration and mapping rules, identify changes, match against documentation, propose updates for unmapped files, present update plan, get user confirmation, read source code for accurate data, update/create pages, verify with configured build command.
+
+- **audit** — invoke the `employees-tech-writer-audit` skill: compare mkdocs.yml and docs/ against template, check tech-writer.md Config and Mapping, verify build command, check Conventions, report discrepancies and suggest fixes.
 
 **At least one condition not met** — invoke the `employees-tech-writer-onboarding` skill and follow it from start to finish: analyze the project, propose documentation structure, configure MkDocs, create structure, write configuration to `.qarium/ai/employees/tech-writer.md`. After onboarding completes, invoke the `employees-tech-writer-feature` skill, passing the same original arguments.
 
 Arguments: $ARGUMENTS
 
-- If argument is `audit` — invoke flow in audit mode (cross-check sources and documentation, without git diff)
 - If arguments are provided and not `audit` — treat them as base reference for git diff comparison (e.g., `origin/pr/42`, `v1.2`)
 - If empty — determine `base_branch`:
   1. Read `base_branch` from `.qarium/ai/employees/tech-writer.md` Config
@@ -22,7 +31,7 @@ Arguments: $ARGUMENTS
   4. If not resolved → `master` (fallback)
   5. Compare with the resolved branch name
 
-Remember the original arguments throughout the entire onboarding → flow sequence. If the original call was `/qarium:employees:tech-writer origin/pr/42`, the flow call must use the same reference.
+Remember the original arguments throughout the entire onboarding → flow sequence.
 
 ## Phase and step numbering convention
 

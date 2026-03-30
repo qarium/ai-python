@@ -1,0 +1,17 @@
+name: Lint
+on:
+  push:
+    branches: [${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}]
+  pull_request:
+    branches: [${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: ${DEVOPS_LINT_CHECK_ARGS:="check <source>/ tests/. Use lint_cmd from qa.md Config."}
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: ${DEVOPS_LINT_FORMAT_ARGS:="format --check <source>/ tests/. Use format_cmd from qa.md Config."}

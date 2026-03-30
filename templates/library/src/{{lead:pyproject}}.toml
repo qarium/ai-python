@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "${LEAD_PACKAGE_NAME:="ask user for package name in kebab-case (e.g. my-awesome-lib)."}"
+dynamic = ["version"]
+description = "${LEAD_DESCRIPTION:="ask user for one-line package description."}"
+readme = "README.md"
+requires-python = "${LEAD_REQUIRES_PYTHON:="ask user for minimum Python version, default >=3.10."}"
+license = {text = "${LEAD_LICENSE:="ask user for license: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip."}"}
+# ${LEAD_CLASSIFIERS:="regenerate based on requires-python — all Python minor versions from minimum to 3.14, add Development Status (3-Alpha for 0.x, 4-Beta for 1.x) and Intended Audience :: Developers."}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+# ${LEAD_DEPENDENCIES:="ask user for runtime dependencies, or leave empty."}
+dependencies = [
+]
+
+# ${LEAD_ENTRY_POINTS:="uncomment and fill if library provides plugins (e.g. pytest11, console_scripts). Remove this block if not applicable."}
+# [project.entry-points.pytest11]
+# name = "module"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.15.0",
+]
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+]
+
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+include = ["${LEAD_PACKAGE_SNAKE:="snake_case dir name, derived from LEAD_PACKAGE_NAME (e.g. my_awesome_lib)."}*"]
+
+[tool.ruff]
+target-version = "${QA_TARGET_VERSION:="derive from requires-python, e.g. >=3.10 → py310."}"
+line-length = 120
+src = ["${QA_PACKAGE_SNAKE:="snake_case dir name, same as LEAD_PACKAGE_SNAKE."}"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "PT",   # flake8-pytest-style
+]
+ignore = [
+    "UP045", # `X | None` — not compatible with Python 3.10 dataclass fields, use `typing.Optional`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",   # assert allowed in tests
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["${QA_PACKAGE_SNAKE:="snake_case dir name, same as LEAD_PACKAGE_SNAKE."}"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

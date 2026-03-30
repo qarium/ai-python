@@ -7,7 +7,12 @@
 ## Employees
 
 The project has skills in `.claude/skills` and commands `.claude/commands`.
-These skills are divided into roles: lead/qa/tech-writer/devops. Each role has a team responsible for dispatching and skills.
+These skills are divided into roles: lead/qa/tech-writer/devops. Each role has three skill types:
+- **onboarding** — initial setup from template, processes `${ROLE_*}` placeholders
+- **feature** — ongoing work (write tests, update docs, modify CI, accumulate knowledge)
+- **audit** — check project against template and role conventions
+
+Dispatchers ask the user to choose between `feature` and `audit` when infrastructure exists.
 
 ### Skill Retrospective
 
