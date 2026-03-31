@@ -1,13 +1,13 @@
 ---
 name: employees-lead:onboarding
-description: Used when a Python project has no file .qarium/ai/employees/lead.md or its sections are empty — analyzes the project and fills in the Architecture & Decisions, Project Structure, Code Patterns sections
+description: Used when a Python project has no file .qarium/ai/employees/lead.md or its sections are empty — copies project template, processes dynamic placeholders, analyzes the project and fills in the Architecture & Decisions, Project Structure, Code Patterns sections
 ---
 
 # Technical Lead Onboarding
 
 ## Overview
 
-Analysis of a Python project and creation of `.qarium/ai/employees/lead.md` with populated sections based on discovered patterns, architecture, and structure.
+Bootstrap a new Python project from a template and create `.qarium/ai/employees/lead.md` with populated sections based on discovered patterns, architecture, and structure.
 
 ## When to use
 
@@ -19,16 +19,45 @@ Analysis of a Python project and creation of `.qarium/ai/employees/lead.md` with
 - The file exists and contains populated sections — use `qarium:employees:lead:feature`
 - It is not a Python project
 
+## Template
+
+This skill uses a project template for initial setup. The template contains configuration files with dynamic placeholders.
+
+### Template location
+
+The template is in `.claude/templates/library/src/` (within the ai-python repository).
+
+### Placeholder syntax
+
+Files contain placeholders in bash default variable syntax: `${ROLE_VARIABLE:="prompt"}`
+
+- **ROLE** — identifies which role fills this variable (LEAD, QA, DEVOPS, TECH_WRITER)
+- **VARIABLE** — named value to compute
+- **"prompt"** — instruction for the AI on what to compute and how
+
+Process ONLY `${LEAD_*}` variables. Leave other roles' placeholders (`${QA_*}`, `${DEVOPS_*}`, `${TECH_WRITER_*}`) unchanged — they will be processed by their respective onboarding skills.
+
+Replace the entire `${LEAD_VARIABLE:="prompt"}` expression with the computed value.
+
+### Directory/file naming
+
+Template directories and files use `{{role:name}}` naming:
+- `{{role:literal_name}}` — rename to `literal_name` (e.g. `{{lead:pyproject}}.toml` → `pyproject.toml`)
+- `{{role:$variable}}` — rename to the value of the variable prefixed with `$` (e.g. `{{lead:$src}}` → value of LEAD_PACKAGE_SNAKE)
+- Directories/files without `{{...}}` keep their names as-is
+
 ```dot
 digraph flow {
     rankdir=LR;
-    analyze [label="Phase 1: Project analysis\npyproject.toml, source structure" shape=box];
+    template [label="Phase 0: Template setup\ncopy, rename, process LEAD_* vars" shape=box];
+    analyze [label="Phase 1: Project analysis\nsource structure, source code" shape=box];
     fill [label="Phase 2: Filling sections\nArchitecture, Structure, Patterns" shape=box];
     review [label="Phase 3: Review\nuser confirms" shape=box];
     write [label="Phase 4: Writing\n.qarium/ai/employees/lead.md" shape=box];
     retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
     done [label="Done" shape=box];
 
+    template -> analyze;
     analyze -> fill;
     fill -> review;
     review -> write [label="approved"];
@@ -38,25 +67,76 @@ digraph flow {
 }
 ```
 
+## Phase 0: Template setup
+
+### Step 1: Copy template files
+
+1. Copy only files and directories with `{{lead:...}}` naming from `.claude/templates/library/src/` to the project root. Do NOT copy files belonging to other roles (`{{devops:...}}`, `{{tech-writer:...}}`, `{{qa:...}}`)
+2. Do NOT overwrite existing files — skip if a file with the target name already exists
+3. Keep `{{...}}` names for now — renaming happens in Step 3
+
+### Step 2: Collect LEAD_* variable values
+
+Before renaming, collect the values for LEAD_* variables by asking the user:
+
+| Variable | Prompt | Source |
+|----------|--------|--------|
+| LEAD_PACKAGE_NAME | Package name in kebab-case (e.g. my-awesome-lib) | Ask user |
+| LEAD_PACKAGE_SNAKE | Package dir in snake_case | Auto-derived from LEAD_PACKAGE_NAME (e.g. `some-name` → `some_name`). Propose to user for confirmation |
+| LEAD_DESCRIPTION | One-line package description | Ask user |
+| LEAD_REQUIRES_PYTHON | Minimum Python version | Ask user, default `>=3.10` |
+| LEAD_LICENSE | License identifier | Ask user: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip |
+
+Additional sections with comment markers (not inline `${...}`, but `# ${LEAD_*:="prompt"}` above the section):
+
+| Variable | How to compute |
+|----------|---------------|
+| LEAD_CLASSIFIERS | All Python minor versions from minimum to 3.14, Development Status, Intended Audience |
+| LEAD_DEPENDENCIES | Ask user for runtime dependencies |
+| LEAD_ENTRY_POINTS | Only if library provides plugins — remove section if not applicable |
+
+Present all collected values to the user for confirmation before proceeding.
+
+### Step 3: Rename template directories and files
+
+Rename all `{{...}}` entries:
+
+| Template name | Target name |
+|---------------|-------------|
+| `{{lead:pyproject}}.toml` | `pyproject.toml` |
+| `{{lead:.gitignore}}` | `.gitignore` |
+| `{{lead:$src}}/` | `<LEAD_PACKAGE_SNAKE>/` |
+
+### Step 4: Process LEAD_* placeholders
+
+Read each copied file, find all `${LEAD_*}` placeholders and replace them with the collected values:
+
+1. Read the file
+2. Find `${LEAD_VARIABLE:="prompt"}` patterns
+3. Replace with the computed value
+4. Write the updated file
+
+For `${LEAD_CLASSIFIERS:="..."}` — replace the entire classifiers array with generated values based on LEAD_REQUIRES_PYTHON.
+
+For `${LEAD_DEPENDENCIES:="..."}` — replace with actual dependencies collected from user, formatted as TOML array entries.
+
+For `${LEAD_ENTRY_POINTS:="..."}` — either fill in the entry points or remove the commented section entirely if not applicable.
+
+### Step 5: Verify
+
+1. Read `pyproject.toml` — verify all `${LEAD_*}` placeholders are replaced, TOML is valid
+2. Read `.gitignore` — verify it exists
+3. Check `<LEAD_PACKAGE_SNAKE>/__init__.py` — verify it exists
+
+Present a summary of created files and remaining placeholders.
+
 ## Phase 1: Project analysis
 
-Collecting information about the current state of the Python project.
+Analyze the project now that template files are in place.
 
-1. **Project metadata** — read `pyproject.toml`. If it does not exist — create a minimal `pyproject.toml`:
-   - Determine project name from the main package directory (Phase 1 step 2)
-   - Build system: `setuptools>=61.0` + `setuptools-scm>=8.0`, backend `setuptools.build_meta`
-   - `dynamic = ["version"]` — never hardcode version
-   - `[tool.setuptools.packages.find]` with `include = ["<package_name>*"]`
-   - `requires-python`: ask the user (default `>=3.10`)
-   - `license`: ask the user (MIT, BSD-3-Clause, Apache-2.0, GPL-3.0-or-later, or skip) — format `{text = "..."}`
-   - `classifiers`: generate based on `requires-python` (all Python minor versions from minimum to 3.14)
-   - Do NOT create CI workflows — that is devops responsibility
-   If `pyproject.toml` exists — extract:
-   - Project name (`[project.name]`)
-   - Project type: library (no `scripts`), CLI application (with `[project.scripts]` or click/typer), web application (fastapi/django/flask)
-   - Build system from `[build-system]` requires: setuptools/hatchling/poetry-core/flit-core/pdm-backend
-   - Entry points (`[project.scripts]`)
-2. **Source structure** — find the main package directory (with `__init__.py`), traverse the directory tree, identify packages and subdirectories
+1. **Project metadata** — read `pyproject.toml` and extract:
+   - Project name, description, project type, build system, entry points
+2. **Source structure** — traverse the directory tree, identify packages and subdirectories
 3. **Default branch** — determine the project's default branch:
    - Try `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'`
    - If that fails, try `git branch --show-current`
@@ -172,16 +252,17 @@ After writing, read the file back for verification.
 
 | Mistake                                           | Fix                                                                     |
 |---------------------------------------------------|-------------------------------------------------------------------------|
-| Filling TODO or LLM Directives during onboarding  | Leave empty — feature will fill from dialogue context                   |
-| Overwriting existing populated sections           | Check first — if populated, suggest feature                             |
-| Recording obvious facts ("we use Python")         | Apply the significance filter                                           |
+| Processing non-LEAD placeholders                  | Only process `${LEAD_*}` — leave `${QA_*}`, `${DEVOPS_*}`, `${TECH_WRITER_*}` untouched |
+| Overwriting existing files during template copy    | Skip files that already exist in the project                            |
 | Skipping Phase 3 (review)                         | Always present for approval                                             |
+| Recording obvious facts ("we use Python")         | Apply the significance filter                                           |
 | Examples tied to a specific project               | Use generic examples, not from the current project                      |
 | Skipping default_branch detection in Phase 1      | Always detect via git or ask the user; other roles depend on this value |
 | Forgetting to include Config in the file template | Config section must always be present in lead.md                        |
 | Hardcoding `version = "0.1.0"` in `[project]`     | Always use `dynamic = ["version"]` with setuptools-scm                   |
-| Using `setuptools>=75.0` in `[build-system]`      | Use `setuptools>=61.0` as minimum version                               |
-| Missing `include` in `[tool.setuptools.packages.find]` | Always set `include = ["<package_name>*"]` based on the main package directory |
+| Leaving `${LEAD_*}` placeholders in files         | All LEAD_* placeholders must be resolved before moving to Phase 1       |
+| Not renaming `{{lead:$src}}` directory            | Must rename to LEAD_PACKAGE_SNAKE value                                 |
+| Copying non-lead template files (devops, tech-writer) | Only copy files with `{{lead:...}}` naming — other roles copy their own files via their onboarding skills |
 
 ## Phase 5: Retrospective
 

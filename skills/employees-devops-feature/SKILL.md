@@ -132,7 +132,7 @@ This applies to any phase that executes shell commands (pip, python).
 | pyproject.toml: `[build-system]`                 | Update `publish.yml`                     |
 | Files `.github/workflows/*.yml` changed directly | Update devops.md Workflow Registry       |
 | Change of trigger_branch in devops.md Config     | Update triggers in all workflows         |
-| `strictacode` added to `[project.optional-dependencies]` | May require creating `strictacode.yml` workflow and `.strictacode.yml` config |
+| Strictacode workflow missing | Create `strictacode.yml` workflow and `.strictacode.yml` config |
 
 5. If no changes are detected — skip Phases 3-5 and proceed to Phase 6 (devops.md synchronization)
 
@@ -145,9 +145,14 @@ After analyzing the git diff, additionally check: has a new employee config appe
 | qa.md (with `lint_cmd`)           | No lint workflow     | Create `lint.yml`   |
 | qa.md (with `run_tests_cmd`)      | No tests workflow    | Create `tests.yml`  |
 | tech-writer.md (with `build_cmd`) | No docs workflow     | Create `docs.yml`   |
-| strictacode in optional-dependencies + no strictacode workflow | Create `strictacode.yml` workflow and `.strictacode.yml` |
+| No strictacode workflow | Create `strictacode.yml` workflow and `.strictacode.yml` |
+| `[tool.ruff]` in pyproject.toml + no lint workflow in Registry | Create `lint.yml` |
+| `[tool.pytest.ini_options]` in pyproject.toml + no tests workflow in Registry | Create `tests.yml` |
+| `docs` group in `[project.optional-dependencies]` + no docs workflow in Registry | Create `docs.yml` |
 
-This covers the scenario where devops onboarding was completed before qa/tech-writer onboarding, and workflows for them were not created.
+This covers two scenarios:
+1. Devops onboarding was completed before qa/tech-writer onboarding, and workflows for them were not created.
+2. pyproject.toml has tools configured (ruff, pytest, mkdocs) but no corresponding workflows exist, even when qa.md/tech-writer.md are not yet created.
 
 ### Exceptions
 
@@ -190,7 +195,7 @@ Execute only the approved changes from the plan.
 
 ### Creating a new workflow (Create)
 
-Use templates from `qarium:employees:devops:onboarding` (Phase 4). Fill in values from qa.md / tech-writer.md / devops.md Config.
+Use template workflow files from `.claude/templates/library/src/{{devops:.github}}/workflows/` as reference. Fill in values from qa.md / tech-writer.md / devops.md Config.
 
 ### Deleting a workflow (Delete)
 
@@ -342,7 +347,7 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 | qa.md exists with `lint_cmd` + no lint workflow                | **missing** — lint workflow needed         |
 | qa.md exists with `run_tests_cmd` + no tests workflow          | **missing** — tests workflow needed        |
 | tech-writer.md exists with `build_cmd` + no docs workflow      | **missing** — docs workflow needed         |
-| strictacode in optional-dependencies + no strictacode workflow | **missing** -- strictacode workflow needed |
+| No strictacode workflow | **missing** -- strictacode workflow needed |
 | strictacode workflow exists + no `.strictacode.yml`            | **missing** -- config file needed          |
 
 **Conventions checks:**
@@ -359,7 +364,7 @@ Generate a table:
 
 | Workflow    | Field          | Current value              | Expected value                     | Source         | Status         |
 |-------------|----------------|----------------------------|------------------------------------|----------------|----------------|
-| `tests.yml` | Python matrix  | `["3.10", "3.11", "3.12"]` | `["3.10", "3.11", "3.12", "3.13"]` | pyproject.toml | **stale**      |
+| `tests.yml` | Python matrix  | `["3.10", "3.11", "3.12", "3.13"]` | `["3.10", "3.11", "3.12", "3.13", "3.14"]` | pyproject.toml | **stale**      |
 | `lint.yml`  | lint command   | `ruff check src/`          | `ruff check src/ tests/`           | qa.md          | **inaccurate** |
 | `docs.yml`  | —              | —                          | —                                  | —              | **ok**         |
 

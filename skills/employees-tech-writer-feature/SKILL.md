@@ -21,6 +21,48 @@ Documentation skill. Manages project documentation across three scenarios:
 - When the user asks to verify documentation accuracy
 - When the user asks to document a specific file, module, or feature
 
+## Facade Documentation Rules
+
+Documentation covers ONLY what is on the public facade. Internal implementation details are not documented.
+
+### What is the facade
+
+The facade is the public API surface of the project — what users and external code interact with:
+
+- **Package `__init__.py`** — names exported via `__all__` or imported at package level
+- **Public classes** — classes not prefixed with `_`
+- **Public functions** — functions not prefixed with `_`
+- **Public constants** — `UPPER_SNAKE_CASE` names not prefixed with `_`
+- **CLI commands** — entry points defined in `[project.scripts]` or `[project.entry-points]`
+- **Configuration options** — parameters exposed to users (CLI flags, env vars, config files)
+
+### What is NOT documented
+
+- Private methods (`_method`) and private functions (`_function`)
+- Internal modules (not imported in package `__init__.py`)
+- Implementation helpers and utilities
+- Test fixtures and test helpers
+
+### Module documentation
+
+If a module is on the facade (imported in `__init__.py` or directly used by users):
+
+1. Document it as a **separate subsection** in the documentation (e.g., `## module_name`)
+2. Within the subsection, document only **public** entities:
+   - Classes: public methods and properties (not prefixed with `_`)
+   - Functions: signature, parameters, return value
+   - Constants: name and value/purpose
+3. Group entities by type: classes first, then functions, then constants
+
+### How to determine the facade
+
+When reading source code in Phase 5:
+
+1. Read the package `__init__.py` — what is exported via `__all__` or imported?
+2. For each exported name, trace to its source module
+3. In that source module, list only public members (no `_` prefix)
+4. This is the facade — document only these
+
 ```dot
 digraph doc_skill {
     rankdir=TB;
@@ -499,6 +541,10 @@ Check whether existing Conventions are still followed in the documentation:
 | Never updating Conventions after documentation work                      | Always check for new conventions after Phase 8 validation and suggest them to the user    |
 | Never refreshing tech-writer.md Config after branch changes              | Always check `base_branch` against the actual default branch during Phase 8 validation    |
 | Skipping Conventions audit                                               | Always check that existing Conventions are still followed in docs during Phase 9 audit    |
+| Documenting private/internal methods or classes                          | Only document public facade — see Facade Documentation Rules                              |
+| Documenting internal modules not on the facade                           | Only document modules exported in `__init__.py` or used by users                          |
+| Mixing multiple modules in one doc section                               | Each facade module gets its own subsection                                                 |
+| Including private members (`_prefix`) in API reference                   | Only include public members (no `_` prefix)                                               |
 
 ## Phase 10: Retrospective
 
