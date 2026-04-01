@@ -58,7 +58,7 @@ jobs:
 
       - name: Create branch and set default
         env:
-          GH_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           NEW_BRANCH="${{ steps.meta.outputs.new_branch }}"
 

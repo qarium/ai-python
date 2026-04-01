@@ -73,7 +73,7 @@ jobs:
         id: notes
         if: steps.meta.outputs.prev_tag != ''
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.GLM_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ZAI_TOKEN }}
           ANTHROPIC_BASE_URL: https://api.z.ai/api/anthropic
           PREV_TAG: ${{ steps.meta.outputs.prev_tag }}
           NEW_TAG: ${{ steps.meta.outputs.new_tag }}
