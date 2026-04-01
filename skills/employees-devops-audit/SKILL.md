@@ -26,12 +26,13 @@ Uses `.claude/templates/library/src/` as reference.
 | `{{devops:.github}}/workflows/lint.yml` | `.github/workflows/lint.yml` | Trigger branch, source dir, commands |
 | `{{devops:.github}}/workflows/tests.yml` | `.github/workflows/tests.yml` | Trigger branch, Python matrix, test command |
 | `{{devops:.github}}/workflows/docs.yml` | `.github/workflows/docs.yml` | Trigger branch, deploy command |
-| `{{devops:.github}}/workflows/publish.yml` | `.github/workflows/publish.yml` | Python version, PyPI token |
+| `{{devops:.github}}/workflows/publish.yml` | `.github/workflows/publish.yml` | Python version, package source dir, PyPI token, release notes model |
+| `{{devops:.github}}/workflows/new_version.yml` | `.github/workflows/new_version.yml` | Branch pattern, default branch check, ADMIN_TOKEN secret |
 | `{{devops:.github}}/workflows/strictacode.yml` | `.github/workflows/strictacode.yml` | Source dir, thresholds |
 
 ### DevOps-owned placeholders
 
-`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml only), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_TEST_CMD}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_PUBLISH_PYTHON}`, `${DEVOPS_SC_*}`
+`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml, publish.yml), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_TEST_CMD}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_PUBLISH_PYTHON}`, `${DEVOPS_SC_*}`
 
 Any remaining `${DEVOPS_*}` in project files is a finding.
 

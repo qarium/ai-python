@@ -145,6 +145,7 @@ After analyzing the git diff, additionally check: has a new employee config appe
 | qa.md (with `lint_cmd`)           | No lint workflow     | Create `lint.yml`   |
 | qa.md (with `run_tests_cmd`)      | No tests workflow    | Create `tests.yml`  |
 | tech-writer.md (with `build_cmd`) | No docs workflow     | Create `docs.yml`   |
+| `[build-system]` + `[project]` in pyproject.toml | No publish workflow | Create `publish.yml` + `new_version.yml` |
 | No strictacode workflow | Create `strictacode.yml` workflow and `.strictacode.yml` |
 | `[tool.ruff]` in pyproject.toml + no lint workflow in Registry | Create `lint.yml` |
 | `[tool.pytest.ini_options]` in pyproject.toml + no tests workflow in Registry | Create `tests.yml` |
@@ -347,6 +348,7 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 | qa.md exists with `lint_cmd` + no lint workflow                | **missing** — lint workflow needed         |
 | qa.md exists with `run_tests_cmd` + no tests workflow          | **missing** — tests workflow needed        |
 | tech-writer.md exists with `build_cmd` + no docs workflow      | **missing** — docs workflow needed         |
+| `[build-system]` + `[project]` in pyproject.toml + no publish workflow | **missing** — publish + new_version workflows needed |
 | No strictacode workflow | **missing** -- strictacode workflow needed |
 | strictacode workflow exists + no `.strictacode.yml`            | **missing** -- config file needed          |
 
