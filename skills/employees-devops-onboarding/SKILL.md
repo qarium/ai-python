@@ -54,22 +54,20 @@ Before executing any shell commands (pip, python), detect the project's virtual 
 
 This applies to any phase that executes shell commands (pip, python).
 
-```dot
-digraph flow {
-    rankdir=LR;
-    analyze [label="Phase 1: Project analysis\npyproject.toml, qa.md, tech-writer.md, CI" shape=box];
-    process [label="Phase 2: Process DEVOPS_* placeholders\nin workflow files" shape=box];
-    verify [label="Phase 3: Verification\nYAML, dependencies, triggers" shape=box];
-    rules [label="Phase 4: Writing devops.md\nConfig + Rules" shape=box];
-    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    analyze["Phase 1: Project analysis<br/>pyproject.toml, qa.md, tech-writer.md, CI"]
+    process["Phase 2: Process DEVOPS_* placeholders<br/>in workflow files"]
+    verify["Phase 3: Verification<br/>YAML, dependencies, triggers"]
+    rules["Phase 4: Writing devops.md<br/>Config + Rules"]
+    retro["Phase 5: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    analyze -> process;
-    process -> verify;
-    verify -> rules;
-    rules -> retro;
-    retro -> done;
-}
+    analyze --> process
+    process --> verify
+    verify --> rules
+    rules --> retro
+    retro --> done
 ```
 
 ## Phase 1: Project Analysis

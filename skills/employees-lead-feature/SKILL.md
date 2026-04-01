@@ -28,35 +28,33 @@ Dispatch ensures that the file exists and contains populated sections before inv
 - The user did not ask to save knowledge
 - The conversation just started and nothing significant has happened
 
-```dot
-digraph flow {
-    rankdir=TB;
-    mode [label="Mode?" shape=diamond];
-    start [label="Trigger: /qarium:employees:lead" shape=box];
-    scan [label="Phase 1: Context scanning\nCode review + strictacode analysis + conversation" shape=box];
-    extract [label="Phase 2: Extraction and categorization\n5 sections" shape=box];
-    present [label="Phase 3: Review presentation\nUser confirms" shape=box];
-    add [label="Phase 4: Adding new knowledge\nto lead.md" shape=box];
-    summarize [label="Phase 5: Summary and optimization\nmerge, compress, remove" shape=box];
-    audit [label="Phase 6: Audit\ncross-check lead.md + strictacode" shape=box];
-    audit_fix [label="User selects fixes" shape=box];
-    retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart TB
+    mode{"Mode?"}
+    start["Trigger: /qarium:employees:lead"]
+    scan["Phase 1: Context scanning<br/>Code review + strictacode analysis + conversation"]
+    extract["Phase 2: Extraction and categorization<br/>5 sections"]
+    present["Phase 3: Review presentation<br/>User confirms"]
+    add["Phase 4: Adding new knowledge<br/>to lead.md"]
+    summarize["Phase 5: Summary and optimization<br/>merge, compress, remove"]
+    audit["Phase 6: Audit<br/>cross-check lead.md + strictacode"]
+    audit_fix["User selects fixes"]
+    retro["Phase 7: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    start -> mode;
-    mode -> scan [label="no arguments"];
-    mode -> audit [label="argument: audit"];
-    scan -> extract;
-    extract -> present;
-    present -> add [label="approved"];
-    present -> done [label="rejected"];
-    add -> summarize;
-    summarize -> retro;
-    audit -> audit_fix;
-    audit_fix -> add [label="fixes selected"];
-    audit_fix -> retro [label="no fixes"];
-    retro -> done;
-}
+    start --> mode
+    mode -->|"no arguments"| scan
+    mode -->|"argument: audit"| audit
+    scan --> extract
+    extract --> present
+    present -->|"approved"| add
+    present -->|"rejected"| done
+    add --> summarize
+    summarize --> retro
+    audit --> audit_fix
+    audit_fix -->|"fixes selected"| add
+    audit_fix -->|"no fixes"| retro
+    retro --> done
 ```
 
 ## Sections

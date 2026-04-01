@@ -34,23 +34,21 @@ Also check for `${DEVOPS_TRIGGER_BRANCH}` in `mkdocs.yml` (edit_uri) — if stil
 
 Any remaining `${TECH_WRITER_*}` or `${DEVOPS_TRIGGER_BRANCH}` in tech-writer files is a finding.
 
-```dot
-digraph flow {
-    rankdir=LR;
-    template [label="Phase 1: Template audit\ncompare docs files vs template" shape=box];
-    conventions [label="Phase 2: Convention audit\ncheck tech-writer.md rules" shape=box];
-    report [label="Phase 3: Report\npresent findings" shape=box];
-    fix [label="Phase 4: Fix approved issues" shape=box];
-    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    template["Phase 1: Template audit<br/>compare docs files vs template"]
+    conventions["Phase 2: Convention audit<br/>check tech-writer.md rules"]
+    report["Phase 3: Report<br/>present findings"]
+    fix["Phase 4: Fix approved issues"]
+    retro["Phase 5: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    template -> conventions;
-    conventions -> report;
-    report -> fix [label="issues selected"];
-    report -> retro [label="no issues"];
-    fix -> retro;
-    retro -> done;
-}
+    template --> conventions
+    conventions --> report
+    report -->|"issues selected"| fix
+    report -->|"no issues"| retro
+    fix --> retro
+    retro --> done
 ```
 
 ## Phase 1: Template audit

@@ -55,26 +55,24 @@ Before executing any shell commands (pip, python, mkdocs), detect the project's 
 
 This applies to Phase 5 (pip install, mkdocs build).
 
-```dot
-digraph flow {
-    rankdir=LR;
-    analyze [label="Phase 1: Project analysis\ntype, dependencies, Python version, source structure" shape=box];
-    structure [label="Phase 2: Structure proposal\nsource analysis → pages" shape=box];
-    config [label="Phase 3: Configuration\nbuild_cmd, deploy_cmd, examples_file, base_branch" shape=box];
-    process [label="Phase 4: Process placeholders\nTECH_WRITER_* + create doc pages" shape=box];
-    install [label="Phase 5: Installation and verification\npip install, build_cmd" shape=box];
-    rules [label="Phase 6: Write .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
-    retro [label="Phase 7: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    analyze["Phase 1: Project analysis<br/>type, dependencies, Python version, source structure"]
+    structure["Phase 2: Structure proposal<br/>source analysis → pages"]
+    config["Phase 3: Configuration<br/>build_cmd, deploy_cmd, examples_file, base_branch"]
+    process["Phase 4: Process placeholders<br/>TECH_WRITER_* + create doc pages"]
+    install["Phase 5: Installation and verification<br/>pip install, build_cmd"]
+    rules["Phase 6: Write .qarium/ai/employees/tech-writer.md<br/>Config + Rules"]
+    retro["Phase 7: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    analyze -> structure;
-    structure -> config;
-    config -> process;
-    process -> install;
-    install -> rules;
-    rules -> retro;
-    retro -> done;
-}
+    analyze --> structure
+    structure --> config
+    config --> process
+    process --> install
+    install --> rules
+    rules --> retro
+    retro --> done
 ```
 
 ## Phase 1: Project Analysis

@@ -48,24 +48,22 @@ Before executing any shell commands (pip, python, pytest, ruff), detect the proj
 
 This applies to all phases: Phase 3 (pip install), Phase 4 (pytest, ruff).
 
-```dot
-digraph flow {
-    rankdir=LR;
-    analyze [label="Phase 1: Project analysis\ntype, Python version, package, configs" shape=box];
-    config [label="Phase 2: Command configuration\ndefaults + custom values" shape=box];
-    generate [label="Phase 3: Generation\npyproject.toml, tests/, install" shape=box];
-    verify [label="Phase 4: Verification\npytest, ruff, cov" shape=box];
-    rules [label="Phase 5: qa.md writing\nConfig + Rules (all sections)" shape=box];
-    retro [label="Phase 6: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Ready to use" shape=box];
+```mermaid
+flowchart LR
+    analyze["Phase 1: Project analysis<br/>type, Python version, package, configs"]
+    config["Phase 2: Command configuration<br/>defaults + custom values"]
+    generate["Phase 3: Generation<br/>pyproject.toml, tests/, install"]
+    verify["Phase 4: Verification<br/>pytest, ruff, cov"]
+    rules["Phase 5: qa.md writing<br/>Config + Rules (all sections)"]
+    retro["Phase 6: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Ready to use"]
 
-    analyze -> config;
-    config -> generate;
-    generate -> verify;
-    verify -> rules;
-    rules -> retro;
-    retro -> done;
-}
+    analyze --> config
+    config --> generate
+    generate --> verify
+    verify --> rules
+    rules --> retro
+    retro --> done
 ```
 
 ## Phase 1: Project analysis
