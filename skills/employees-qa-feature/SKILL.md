@@ -255,12 +255,12 @@ Run the following sequence:
 2. If new tests failed — re-run the specific file with `--tb=long` for details, fix, re-run
 3. If old tests broke — re-run the specific file with `--tb=long` for details, fix, re-run
 4. Lint check — use `lint_cmd` from **Config** in `.qarium/ai/employees/qa.md` (default: `ruff check <source>/ tests/`).
-5. Lint auto-fix — use `lint_fix_cmd` from **Config** in `.qarium/ai/employees/qa.md` (default: `ruff check --fix <source>/ tests/`).
-6. Format check — use `format_cmd` from **Config** in `.qarium/ai/employees/qa.md` (default: `ruff format --check <source>/ tests/`).
-7. Format auto-fix — use `format_fix_cmd` from **Config** in `.qarium/ai/employees/qa.md` (default: `ruff format <source>/ tests/`)
-8. If manual fixes are needed — fix and re-run
-9. Final run of all tests (lint/format fixes may have broken something)
-
+5. If lint errors found — apply `lint_fix_cmd` from **Config** (default: `ruff check --fix <source>/ tests/`).
+6. If lint errors remain after auto-fix — fix source files manually, re-run lint check. Repeat until clean.
+7. Format check — use `format_cmd` from **Config** in `.qarium/ai/employees/qa.md` (default: `ruff format --check <source>/ tests/`).
+8. If format errors found — apply `format_fix_cmd` from **Config** (default: `ruff format <source>/ tests/`).
+9. If format errors remain after auto-fix — fix source files manually, re-run format check. Repeat until clean.
+10. Final run of all tests (lint/format fixes may have broken something)
 **Complete only when all tests are green, linting is clean, and formatting is correct.**
 
 If after 2 fix iterations the problem persists — explain the remaining issue and wait for user instructions.
@@ -547,6 +547,7 @@ Generate the table:
 | Checking only Config key presence, not values during audit    | Always run Config commands and verify they work; report broken commands as **inaccurate**                                                                            |
 | Not detecting CLI Testing subsection when project becomes CLI | Always check `[project.scripts]` in pyproject.toml against CLI Testing subsection during Rule update and audit                                                       |
 | Skipping Conventions audit                                    | Always check that existing Conventions are still followed in tests; report stale conventions                                                                         |
+| Skipping lint/format fixes in source files                   | QA's scope includes all modified files — fix lint/format errors in both source and test files; source errors will fail CI too                                        |
 
 ## Phase 9: Retrospective
 
