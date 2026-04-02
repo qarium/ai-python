@@ -19,6 +19,17 @@ Create `.qarium/ai/employees/developer.md` with coding conventions, compile chec
 - `.qarium/ai/employees/developer.md` already has a `## Rules` section — warn the user and suggest using the developer command for feature or review work
 - This is not a Python project
 
+## Virtual Environment
+
+Before executing any shell commands (python, py_compile), detect the project's virtual environment:
+
+1. Check for `.venv/` in the project root
+2. If not found, check for `venv/`
+3. If found → prefix all commands: `source .venv/bin/activate && <command>` (or `source venv/bin/activate && <command>`)
+4. If not found → execute `<command>` as-is
+
+This applies to Phase 4 (verification compile check).
+
 ```mermaid
 flowchart TD
     start([Trigger: onboarding]) --> check
@@ -47,6 +58,8 @@ Show the user the compile command configuration:
 | compile_cmd | `python -m py_compile <file>` |
 
 Ask the user to confirm or customize. The `<file>` placeholder will be replaced with the actual file path when the command runs.
+
+If a virtual environment was detected (see Virtual Environment section), remind the user that compile commands will be prefixed with venv activation automatically.
 
 ## Phase 3: Write developer.md
 
