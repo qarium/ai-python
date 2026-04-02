@@ -148,6 +148,10 @@ Only proceed to Phase 4 after explicit approval.
 
 Execute approved tasks one at a time, in plan order.
 
+### Coding conventions
+
+Read `.qarium/ai/employees/developer.md` Rules → Conventions section. Follow these conventions when writing code. If the file or Conventions section is missing — proceed without convention constraints.
+
 ### Compile check configuration
 
 Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — inform the user that compile checks are skipped and proceed without them.
@@ -178,6 +182,7 @@ Do NOT remove `# AGENT:` comments during execution — they remain for the revie
 | Asking all clarification questions at once | One question at a time |
 | Skipping compile check after code changes | Always run compile_cmd from developer.md Config after each change |
 | Running compile check without reading developer.md | Read compile_cmd from Config, do not hardcode the command |
+| Ignoring coding conventions from developer.md | Read Conventions from Rules section and follow them when writing code |
 
 ## Phase 5: Retrospective
 

@@ -96,10 +96,15 @@ Only `done` entries are resolved. `partial` and `not_done` become findings for P
 
 Check the expanded entities (from Phase 1 Step 2) for quality issues.
 
+### Convention compliance
+
+Read `.qarium/ai/employees/developer.md` Rules → Conventions section. Check each changed entity for violations of these conventions. If the file or Conventions section is missing — skip this check.
+
 ### New code checks
 
 | Check | What to look for | Severity guideline |
 |-------|-------------------|-------------------|
+| Convention compliance | Code violates rules from developer.md Conventions (e.g., wrong import style, if/else in logic, staticmethod classes) | **warning** or **critical** for structural violations |
 | Cyclomatic complexity | Deep nesting (>3 levels), many branches (>5 if/elif/for/while in one function) | **warning** or **critical** if >5 levels |
 | Redundancy | Duplicated logic, copy-pasted code blocks, unnecessary helper functions | **suggestion** or **warning** if significant |
 | Dead code | Unused variables, unreachable branches, commented-out code | **suggestion** |
@@ -188,6 +193,7 @@ If user chooses "Yes, remove all":
 | Not parsing multi-line AGENT blocks | Always collect continuation `#` lines after `# AGENT:` |
 | Skipping compile check after applying fixes | Always run compile_cmd from developer.md Config after each fix |
 | Running compile check without reading developer.md | Read compile_cmd from Config, do not hardcode the command |
+| Skipping convention compliance check | Always read Conventions from developer.md Rules and check code against them |
 
 ## Phase 6: Retrospective
 
