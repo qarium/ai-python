@@ -142,6 +142,17 @@ Wait for user response. The user selects which findings to fix:
 
 Only approved fixes are applied. Apply them one at a time, show `git diff` after each.
 
+### Compile check after fixes
+
+Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — skip compile checks.
+
+After applying each fix:
+
+1. Replace `<file>` placeholder in `compile_cmd` with the changed file path
+2. Run the compile command
+3. If compilation fails — show the error, fix it, re-compile
+4. Show `git diff` for the fix
+
 ## Phase 5: Cleanup
 
 If no `# AGENT:` markers were found in Phase 2 — skip this phase, proceed directly to Phase 6.
@@ -173,6 +184,8 @@ If user chooses "Yes, remove all":
 | Applying fixes without user approval | Present plan, wait for selection |
 | Skipping the compliance check when no AGENT markers exist | Still run Phase 3 quality checks |
 | Not parsing multi-line AGENT blocks | Always collect continuation `#` lines after `# AGENT:` |
+| Skipping compile check after applying fixes | Always run compile_cmd from developer.md Config after each fix |
+| Running compile check without reading developer.md | Read compile_cmd from Config, do not hardcode the command |
 
 ## Phase 6: Retrospective
 
