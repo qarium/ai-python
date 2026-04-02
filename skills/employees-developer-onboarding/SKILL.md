@@ -94,6 +94,8 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 | LBYL over EAFP | Look Before You Leap is preferred over Easier to Ask Forgiveness |
 | Relative imports | Use relative imports within the package |
 | Aggregation over inheritance | Prefer aggregation/composition over inheritance |
+| Docstrings in English | All docstrings must be written in English |
+| Google-style docstrings | Use Google-style format: `Args:`, `Returns:`, `Raises:` sections with indented descriptions |
 
 ### Patterns
 
@@ -124,7 +126,7 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 | Overwriting existing developer.md with Rules | Check first, warn and exit if found |
 | Writing developer.md without user approval | Present for review first |
 | Skipping the Config section | Config must always be present — feature and review skills read compile_cmd from here |
-| Leaving empty Conventions table | Always include the 8 base conventions |
+| Leaving empty Conventions table | Always include the 10 base conventions |
 | Forgetting empty Patterns and Lessons tables | Always create them empty — they will be filled during project work |
 | Hardcoding compile_cmd without asking | Always show config to user in Phase 2 for confirmation or customization |
 
