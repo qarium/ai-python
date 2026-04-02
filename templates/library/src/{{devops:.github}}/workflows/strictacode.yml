@@ -27,7 +27,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - uses: qarium/strictacode/.github/actions/analyze@master
+      - uses: qarium/strictacode/.github/actions/analyze@0.0.x
         with:
           install-cmd: pip install strictacode
           working-directory: ${DEVOPS_PACKAGE_SNAKE:="package dir in snake_case from pyproject.toml."}
