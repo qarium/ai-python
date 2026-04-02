@@ -144,11 +144,13 @@ Only approved fixes are applied. Apply them one at a time, show `git diff` after
 
 ### Compile check after fixes
 
-Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — skip compile checks.
+Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — inform the user that compile checks are skipped and proceed without them.
+
+If `compile_cmd` does not contain `<file>`, warn the user and skip compile checks for this session.
 
 After applying each fix:
 
-1. Replace `<file>` placeholder in `compile_cmd` with the changed file path
+1. Replace `<file>` placeholder in `compile_cmd` with the changed file path. Quote the path if it contains spaces
 2. Run the compile command
 3. If compilation fails — show the error, fix it, re-compile
 4. Show `git diff` for the fix
