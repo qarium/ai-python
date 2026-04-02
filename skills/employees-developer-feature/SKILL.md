@@ -148,12 +148,19 @@ Only proceed to Phase 4 after explicit approval.
 
 Execute approved tasks one at a time, in plan order.
 
+### Compile check configuration
+
+Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — skip compile checks and proceed without them.
+
+The `compile_cmd` contains a `<file>` placeholder — replace it with the actual file path before running.
+
 For each task:
 
 1. Read the target file to understand current code
 2. Implement the change
-3. Show the `git diff` for the change
-4. Mark the task as done in the plan table
+3. Run compile check: execute `compile_cmd` with the changed file path. If compilation fails — show the error, fix it, re-compile
+4. Show the `git diff` for the change
+5. Mark the task as done in the plan table
 
 Do NOT remove `# AGENT:` comments during execution — they remain for the review skill.
 
@@ -169,6 +176,8 @@ Do NOT remove `# AGENT:` comments during execution — they remain for the revie
 | Implementing multiple tasks at once | Execute one at a time, show diff after each |
 | Ignoring context (module/entity/inline) | Always determine context to understand scope |
 | Asking all clarification questions at once | One question at a time |
+| Skipping compile check after code changes | Always run compile_cmd from developer.md Config after each change |
+| Running compile check without reading developer.md | Read compile_cmd from Config, do not hardcode the command |
 
 ## Phase 5: Retrospective
 
