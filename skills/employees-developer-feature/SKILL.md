@@ -1,6 +1,6 @@
 ---
 name: employees-developer:feature
-description: Used when the user wants to scan # AGENT: markers from git diff, clarify requirements, plan coding tasks, and implement approved changes. Stateless — no persistent knowledge file.
+description: Used when the user wants to scan # AGENT: markers from git diff, clarify requirements, plan coding tasks, and implement approved changes. No session-specific state maintained between invocations.
 ---
 
 # Developer Feature Flow
@@ -18,7 +18,7 @@ Does NOT remove `# AGENT:` comments after implementation — that is the respons
 
 **DO NOT use when:**
 - The user wants to review existing code — use `employees-developer-review`
-- There are no uncommitted changes with `# AGENT:` markers
+- There are no `# AGENT:` markers in any available diff (uncommitted or last commit)
 
 ## Marker format
 
@@ -150,9 +150,9 @@ Execute approved tasks one at a time, in plan order.
 
 ### Compile check configuration
 
-Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — skip compile checks and proceed without them.
+Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — inform the user that compile checks are skipped and proceed without them.
 
-The `compile_cmd` contains a `<file>` placeholder — replace it with the actual file path before running.
+The `compile_cmd` contains a `<file>` placeholder — replace it with the actual file path before running. If `compile_cmd` does not contain `<file>`, warn the user and skip compile checks for this session. Quote the file path if it contains spaces.
 
 For each task:
 
