@@ -7,3 +7,4 @@ docs/plans
 # custom commands and skills
 skills/custom-*
 commands/custom
+settings.local.json
