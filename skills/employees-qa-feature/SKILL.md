@@ -20,48 +20,46 @@ Updates data in `.qarium/ai/employees/qa.md`. All file content is written in Eng
 - When existing tests fail after code changes
 - When the user asks to check qa.md for discrepancies with the actual state of tests
 
-```dot
-digraph flow {
-    rankdir=LR;
-    mode [label="Mode?" shape=diamond];
-    detect [label="Phase 1: Change detection\ngit diff, read Rules" shape=box];
-    run [label="Phase 2: Run existing tests\npytest --tb=long" shape=box];
-    failing [label="Tests failing?" shape=diamond];
-    diagnose [label="Phase 3: Failure diagnosis\nfix tests or explain" shape=box];
-    plan [label="Phase 4: Test planning\npresent for review" shape=box];
-    approved [label="Approved?" shape=diamond];
-    generate [label="Phase 5: Test generation\nunit, edge, integration" shape=box];
-    verify [label="Phase 6: Verification\npytest + lint + format" shape=box];
-    clean [label="All green?" shape=diamond];
-    regress [label="Regression?\nlikely a bug in sources" shape=diamond];
-    update [label="Phase 7: Update Rules\nsync with .qarium/ai/employees/qa.md" shape=box];
-    audit [label="Phase 8: Audit\ncross-check qa.md" shape=box];
-    audit_fix [label="User selects fixes" shape=box];
-    retro [label="Phase 9: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    mode{"Mode?"}
+    detect["Phase 1: Change detection<br/>git diff, read Rules"]
+    run["Phase 2: Run existing tests<br/>pytest --tb=long"]
+    failing{"Tests failing?"}
+    diagnose["Phase 3: Failure diagnosis<br/>fix tests or explain"]
+    plan["Phase 4: Test planning<br/>present for review"]
+    approved{"Approved?"}
+    generate["Phase 5: Test generation<br/>unit, edge, integration"]
+    verify["Phase 6: Verification<br/>pytest + lint + format"]
+    clean{"All green?"}
+    regress{"Regression?<br/>likely a bug in sources"}
+    update["Phase 7: Update Rules<br/>sync with .qarium/ai/employees/qa.md"]
+    audit["Phase 8: Audit<br/>cross-check qa.md"]
+    audit_fix["User selects fixes"]
+    retro["Phase 9: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    mode -> detect [label="no arguments"];
-    mode -> audit [label="argument: audit"];
-    detect -> run;
-    run -> failing;
-    failing -> diagnose [label="yes"];
-    failing -> plan [label="no"];
-    diagnose -> run;
-    plan -> approved;
-    approved -> generate [label="yes"];
-    approved -> done [label="rejected"];
-    generate -> regress [label="sources broken"];
-    generate -> verify [label="tests written"];
-    regress -> done [label="explain to user"];
-    verify -> clean;
-    clean -> generate [label="no"];
-    clean -> update [label="yes"];
-    update -> retro;
-    audit -> audit_fix;
-    audit_fix -> update [label="fixes selected"];
-    audit_fix -> retro [label="no fixes"];
-    retro -> done;
-}
+    mode -->|"no arguments"| detect
+    mode -->|"argument: audit"| audit
+    detect --> run
+    run --> failing
+    failing -->|"yes"| diagnose
+    failing -->|"no"| plan
+    diagnose --> run
+    plan --> approved
+    approved -->|"yes"| generate
+    approved -->|"rejected"| done
+    generate -->|"sources broken"| regress
+    generate -->|"tests written"| verify
+    regress -->|"explain to user"| done
+    verify --> clean
+    clean -->|"no"| generate
+    clean -->|"yes"| update
+    update --> retro
+    audit --> audit_fix
+    audit_fix -->|"fixes selected"| update
+    audit_fix -->|"no fixes"| retro
+    retro --> done
 ```
 
 **DO NOT use when:**

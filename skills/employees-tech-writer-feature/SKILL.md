@@ -63,61 +63,59 @@ When reading source code in Phase 5:
 3. In that source module, list only public members (no `_` prefix)
 4. This is the facade — document only these
 
-```dot
-digraph doc_skill {
-    rankdir=TB;
-    start [label="Trigger: /qarium:employees:tech-writer [ref|audit]" shape=box];
-    mapping_check [label="Phase 0: Mapping empty?" shape=diamond];
-    fill_mapping [label="Fill Mapping" shape=box];
-    mode [label="Mode?" shape=diamond];
-    config [label="Phase 1: Load Config\nRead .qarium/ai/employees/tech-writer.md\nConfig + Rules" shape=box];
-    diff [label="Phase 2: Change detection\ngit diff --name-only ref...HEAD" shape=box];
-    filter [label="Filter: exclude tests, plans, CI, configs" shape=box];
-    map [label="Phase 3: Mapping matching\nMatch changed files with mapping" shape=box];
-    unmapped [label="Unmapped files?" shape=diamond];
-    propose [label="Propose mapping update" shape=box];
-    plan [label="Phase 4: Present update plan\nGenerate update plan table" shape=box];
-    confirm [label="User confirmed plan" shape=diamond];
-    audit [label="Phase 9: Audit\nCross-check sources and documentation\nGenerate audit report" shape=box];
-    audit_fix [label="User selects fixes" shape=box];
-    read_src [label="Phase 5: Read source code\nRead source files for accurate data" shape=box];
-    new_page [label="Phase 7: Create new pages\nAsk for structure, create page" shape=box];
-    update [label="Phase 6: Update existing pages" shape=box];
-    examples [label="Update examples if needed" shape=box];
-    nav [label="Update mkdocs.yml" shape=box];
-    build [label="Phase 8: Validation\nRun build_cmd" shape=box];
-    review [label="Check consistency" shape=box];
-    done [label="Done" shape=box];
-    retro [label="Phase 10: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
+```mermaid
+flowchart TB
+    start["Trigger: /qarium:employees:tech-writer [ref|audit]"]
+    mapping_check{"Phase 0: Mapping empty?"}
+    fill_mapping["Fill Mapping"]
+    mode{"Mode?"}
+    config["Phase 1: Load Config<br/>Read .qarium/ai/employees/tech-writer.md<br/>Config + Rules"]
+    diff["Phase 2: Change detection<br/>git diff --name-only ref...HEAD"]
+    filter["Filter: exclude tests, plans, CI, configs"]
+    map["Phase 3: Mapping matching<br/>Match changed files with mapping"]
+    unmapped{"Unmapped files?"}
+    propose["Propose mapping update"]
+    plan["Phase 4: Present update plan<br/>Generate update plan table"]
+    confirm{"User confirmed plan"}
+    audit["Phase 9: Audit<br/>Cross-check sources and documentation<br/>Generate audit report"]
+    audit_fix["User selects fixes"]
+    read_src["Phase 5: Read source code<br/>Read source files for accurate data"]
+    new_page["Phase 7: Create new pages<br/>Ask for structure, create page"]
+    update["Phase 6: Update existing pages"]
+    examples["Update examples if needed"]
+    nav["Update mkdocs.yml"]
+    build["Phase 8: Validation<br/>Run build_cmd"]
+    review["Check consistency"]
+    done["Done"]
+    retro["Phase 10: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
 
-    start -> mapping_check;
-    mapping_check -> fill_mapping [label="empty"];
-    mapping_check -> mode [label="has rows"];
-    fill_mapping -> mode;
-    mode -> config [label="update / on-demand"];
-    mode -> config [label="audit"];
-    config -> diff [label="update"];
-    config -> audit [label="audit"];
-    diff -> filter -> map -> unmapped;
-    unmapped -> propose [label="yes"];
-    propose -> confirm;
-    unmapped -> plan [label="no"];
-    confirm -> read_src [label="approved"];
-    confirm -> done [label="rejected"];
-    audit -> audit_fix;
-    audit_fix -> read_src [label="fixes selected"];
-    audit_fix -> retro [label="no fixes"];
-    read_src -> new_page [label="has new pages"];
-    read_src -> update [label="has updates"];
-    read_src -> done [label="no changes needed"];
-    new_page -> update;
-    update -> examples;
-    examples -> nav;
-    nav -> build;
-    build -> review;
-    review -> retro;
-    retro -> done;
-}
+    start --> mapping_check
+    mapping_check -->|"empty"| fill_mapping
+    mapping_check -->|"has rows"| mode
+    fill_mapping --> mode
+    mode -->|"update / on-demand"| config
+    mode -->|"audit"| config
+    config -->|"update"| diff
+    config -->|"audit"| audit
+    diff --> filter --> map --> unmapped
+    unmapped -->|"yes"| propose
+    propose --> confirm
+    unmapped -->|"no"| plan
+    confirm -->|"approved"| read_src
+    confirm -->|"rejected"| done
+    audit --> audit_fix
+    audit_fix -->|"fixes selected"| read_src
+    audit_fix -->|"no fixes"| retro
+    read_src -->|"has new pages"| new_page
+    read_src -->|"has updates"| update
+    read_src -->|"no changes needed"| done
+    new_page --> update
+    update --> examples
+    examples --> nav
+    nav --> build
+    build --> review
+    review --> retro
+    retro --> done
 ```
 
 **DO NOT use when:**

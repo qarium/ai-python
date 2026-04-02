@@ -26,32 +26,31 @@ Uses `.claude/templates/library/src/` as reference.
 | `{{devops:.github}}/workflows/lint.yml` | `.github/workflows/lint.yml` | Trigger branch, source dir, commands |
 | `{{devops:.github}}/workflows/tests.yml` | `.github/workflows/tests.yml` | Trigger branch, Python matrix, test command |
 | `{{devops:.github}}/workflows/docs.yml` | `.github/workflows/docs.yml` | Trigger branch, deploy command |
-| `{{devops:.github}}/workflows/publish.yml` | `.github/workflows/publish.yml` | Python version, PyPI token |
+| `{{devops:.github}}/workflows/publish.yml` | `.github/workflows/publish.yml` | Python version, package source dir, PyPI token, release notes model |
+| `{{devops:.github}}/workflows/new_version.yml` | `.github/workflows/new_version.yml` | Branch pattern, default branch check, ADMIN_TOKEN secret |
 | `{{devops:.github}}/workflows/strictacode.yml` | `.github/workflows/strictacode.yml` | Source dir, thresholds |
 
 ### DevOps-owned placeholders
 
-`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml only), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_TEST_CMD}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_PUBLISH_PYTHON}`, `${DEVOPS_SC_*}`
+`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml, publish.yml), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_TEST_CMD}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_PUBLISH_PYTHON}`, `${DEVOPS_SC_*}`
 
 Any remaining `${DEVOPS_*}` in project files is a finding.
 
-```dot
-digraph flow {
-    rankdir=LR;
-    template [label="Phase 1: Template audit\ncompare workflows vs template" shape=box];
-    conventions [label="Phase 2: Convention audit\ncheck devops.md rules" shape=box];
-    report [label="Phase 3: Report\npresent findings" shape=box];
-    fix [label="Phase 4: Fix approved issues" shape=box];
-    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    template["Phase 1: Template audit<br/>compare workflows vs template"]
+    conventions["Phase 2: Convention audit<br/>check devops.md rules"]
+    report["Phase 3: Report<br/>present findings"]
+    fix["Phase 4: Fix approved issues"]
+    retro["Phase 5: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    template -> conventions;
-    conventions -> report;
-    report -> fix [label="issues selected"];
-    report -> retro [label="no issues"];
-    fix -> retro;
-    retro -> done;
-}
+    template --> conventions
+    conventions --> report
+    report -->|"issues selected"| fix
+    report -->|"no issues"| retro
+    fix --> retro
+    retro --> done
 ```
 
 ## Phase 1: Template audit

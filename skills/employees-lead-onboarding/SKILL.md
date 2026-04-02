@@ -46,25 +46,23 @@ Template directories and files use `{{role:name}}` naming:
 - `{{role:$variable}}` — rename to the value of the variable prefixed with `$` (e.g. `{{lead:$src}}` → value of LEAD_PACKAGE_SNAKE)
 - Directories/files without `{{...}}` keep their names as-is
 
-```dot
-digraph flow {
-    rankdir=LR;
-    template [label="Phase 0: Template setup\ncopy, rename, process LEAD_* vars" shape=box];
-    analyze [label="Phase 1: Project analysis\nsource structure, source code" shape=box];
-    fill [label="Phase 2: Filling sections\nArchitecture, Structure, Patterns" shape=box];
-    review [label="Phase 3: Review\nuser confirms" shape=box];
-    write [label="Phase 4: Writing\n.qarium/ai/employees/lead.md" shape=box];
-    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    template["Phase 0: Template setup<br/>copy, rename, process LEAD_* vars"]
+    analyze["Phase 1: Project analysis<br/>source structure, source code"]
+    fill["Phase 2: Filling sections<br/>Architecture, Structure, Patterns"]
+    review["Phase 3: Review<br/>user confirms"]
+    write["Phase 4: Writing<br/>.qarium/ai/employees/lead.md"]
+    retro["Phase 5: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    template -> analyze;
-    analyze -> fill;
-    fill -> review;
-    review -> write [label="approved"];
-    review -> done [label="rejected"];
-    write -> retro;
-    retro -> done;
-}
+    template --> analyze
+    analyze --> fill
+    fill --> review
+    review -->|"approved"| write
+    review -->|"rejected"| done
+    write --> retro
+    retro --> done
 ```
 
 ## Phase 0: Template setup

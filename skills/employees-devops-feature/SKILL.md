@@ -26,43 +26,41 @@ Reads configuration from `.qarium/ai/employees/devops.md` (Config + Rules), as w
 - After directly modifying workflow files
 - When the user asks to verify CI for discrepancies with project configuration
 
-```dot
-digraph flow {
-    rankdir=LR;
-    trigger [label="Trigger: /qarium:employees:devops [аргументы]" shape=box];
-    mode [label="Mode?" shape=diamond];
-    auto [label="Phase 2: Change collection\ngit diff" shape=box];
-    has_changes [label="Changes found?" shape=diamond];
-    direct [label="Collect changes from arguments" shape=box];
-    audit [label="Phase 7: Audit\ncross-check CI with project" shape=box];
-    audit_fix [label="User selects fixes" shape=box];
-    plan [label="Phase 3: Plan formation\nchange table for approval" shape=box];
-    approved [label="Approved?" shape=diamond];
-    apply [label="Phase 4: Applying changes\nmodify / create / delete" shape=box];
-    verify [label="Phase 5: Verification\nYAML, cross-reference" shape=box];
-    sync [label="Phase 6: devops.md synchronization\nupdating Workflow Registry" shape=box];
-    done [label="Done" shape=box];
-    retro [label="Phase 8: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
+```mermaid
+flowchart LR
+    trigger["Trigger: /qarium:employees:devops [аргументы]"]
+    mode{"Mode?"}
+    auto["Phase 2: Change collection<br/>git diff"]
+    has_changes{"Changes found?"}
+    direct["Collect changes from arguments"]
+    audit["Phase 7: Audit<br/>cross-check CI with project"]
+    audit_fix["User selects fixes"]
+    plan["Phase 3: Plan formation<br/>change table for approval"]
+    approved{"Approved?"}
+    apply["Phase 4: Applying changes<br/>modify / create / delete"]
+    verify["Phase 5: Verification<br/>YAML, cross-reference"]
+    sync["Phase 6: devops.md synchronization<br/>updating Workflow Registry"]
+    done["Done"]
+    retro["Phase 8: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
 
-    trigger -> mode;
-    mode -> auto [label="no arguments\n(auto-analysis)"];
-    mode -> direct [label="with arguments\n(explicit request)"];
-    mode -> audit [label="argument: audit"];
-    auto -> has_changes;
-    has_changes -> plan [label="yes"];
-    has_changes -> sync [label="no"];
-    direct -> plan;
-    audit -> audit_fix;
-    audit_fix -> apply [label="fixes selected"];
-    audit_fix -> sync [label="no fixes"];
-    plan -> approved;
-    approved -> apply [label="approved"];
-    approved -> done [label="rejected"];
-    apply -> verify;
-    verify -> sync;
-    sync -> retro;
-    retro -> done;
-}
+    trigger --> mode
+    mode -->|"no arguments<br/>(auto-analysis)"| auto
+    mode -->|"with arguments<br/>(explicit request)"| direct
+    mode -->|"argument: audit"| audit
+    auto --> has_changes
+    has_changes -->|"yes"| plan
+    has_changes -->|"no"| sync
+    direct --> plan
+    audit --> audit_fix
+    audit_fix -->|"fixes selected"| apply
+    audit_fix -->|"no fixes"| sync
+    plan --> approved
+    approved -->|"approved"| apply
+    approved -->|"rejected"| done
+    apply --> verify
+    verify --> sync
+    sync --> retro
+    retro --> done
 ```
 
 **DO NOT use when:**
@@ -145,6 +143,7 @@ After analyzing the git diff, additionally check: has a new employee config appe
 | qa.md (with `lint_cmd`)           | No lint workflow     | Create `lint.yml`   |
 | qa.md (with `run_tests_cmd`)      | No tests workflow    | Create `tests.yml`  |
 | tech-writer.md (with `build_cmd`) | No docs workflow     | Create `docs.yml`   |
+| `[build-system]` + `[project]` in pyproject.toml | No publish workflow | Create `publish.yml` + `new_version.yml` |
 | No strictacode workflow | Create `strictacode.yml` workflow and `.strictacode.yml` |
 | `[tool.ruff]` in pyproject.toml + no lint workflow in Registry | Create `lint.yml` |
 | `[tool.pytest.ini_options]` in pyproject.toml + no tests workflow in Registry | Create `tests.yml` |
@@ -347,6 +346,7 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 | qa.md exists with `lint_cmd` + no lint workflow                | **missing** — lint workflow needed         |
 | qa.md exists with `run_tests_cmd` + no tests workflow          | **missing** — tests workflow needed        |
 | tech-writer.md exists with `build_cmd` + no docs workflow      | **missing** — docs workflow needed         |
+| `[build-system]` + `[project]` in pyproject.toml + no publish workflow | **missing** — publish + new_version workflows needed |
 | No strictacode workflow | **missing** -- strictacode workflow needed |
 | strictacode workflow exists + no `.strictacode.yml`            | **missing** -- config file needed          |
 

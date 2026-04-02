@@ -32,7 +32,7 @@ Read workflow files and find all `${DEVOPS_*}` placeholders:
 | Variable | Expected in | How to compute |
 |----------|-------------|----------------|
 | DEVOPS_TRIGGER_BRANCH | All workflows | Read `default_branch` from `.qarium/ai/employees/lead.md` Config. If not found — `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null`, fallback `master` |
-| DEVOPS_PACKAGE_SNAKE | strictacode.yml | Read `[project.name]` from pyproject.toml, convert to snake_case |
+| DEVOPS_PACKAGE_SNAKE | strictacode.yml, publish.yml | Read `[project.name]` from pyproject.toml, convert to snake_case |
 | DEVOPS_LINT_CHECK_ARGS | lint.yml | From `qa.md` Config `lint_cmd` — extract check arguments (e.g. `check <source>/ tests/`) |
 | DEVOPS_LINT_FORMAT_ARGS | lint.yml | From `qa.md` Config `format_cmd` — extract format arguments (e.g. `format --check <source>/ tests/`) |
 | DEVOPS_PYTHON_MATRIX | tests.yml | Derive from `requires-python` (e.g. `>=3.10` → `["3.10", "3.11", "3.12", "3.13", "3.14"]`) |
@@ -54,22 +54,20 @@ Before executing any shell commands (pip, python), detect the project's virtual 
 
 This applies to any phase that executes shell commands (pip, python).
 
-```dot
-digraph flow {
-    rankdir=LR;
-    analyze [label="Phase 1: Project analysis\npyproject.toml, qa.md, tech-writer.md, CI" shape=box];
-    process [label="Phase 2: Process DEVOPS_* placeholders\nin workflow files" shape=box];
-    verify [label="Phase 3: Verification\nYAML, dependencies, triggers" shape=box];
-    rules [label="Phase 4: Writing devops.md\nConfig + Rules" shape=box];
-    retro [label="Phase 5: Retrospective\nCLAUDE.md → Skill Retrospective" shape=box];
-    done [label="Done" shape=box];
+```mermaid
+flowchart LR
+    analyze["Phase 1: Project analysis<br/>pyproject.toml, qa.md, tech-writer.md, CI"]
+    process["Phase 2: Process DEVOPS_* placeholders<br/>in workflow files"]
+    verify["Phase 3: Verification<br/>YAML, dependencies, triggers"]
+    rules["Phase 4: Writing devops.md<br/>Config + Rules"]
+    retro["Phase 5: Retrospective<br/>CLAUDE.md → Skill Retrospective"]
+    done["Done"]
 
-    analyze -> process;
-    process -> verify;
-    verify -> rules;
-    rules -> retro;
-    retro -> done;
-}
+    analyze --> process
+    process --> verify
+    verify --> rules
+    rules --> retro
+    retro --> done
 ```
 
 ## Phase 1: Project Analysis
@@ -115,6 +113,7 @@ Determine which workflows are needed:
 | Tests       | qa.md exists (contains `run_tests_cmd`)                                               |
 | Docs        | tech-writer.md exists (contains `build_cmd`)                                          |
 | Publish     | `[build-system]` and `[project]` with `name` exist in pyproject.toml                  |
+| New Version | Always include alongside Publish. Creates X.Y.x version branches, sets as default.   |
 | Strictacode | Always include by default. User can exclude during confirmation step. |
 
 Present the detected set to the user. The user can:
