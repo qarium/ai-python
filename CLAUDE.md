@@ -7,7 +7,7 @@
 ## Employees
 
 The project has skills in `.claude/skills` and commands `.claude/commands`.
-These skills are divided into roles: lead/qa/tech-writer/devops. Each role has three skill types:
+These skills are divided into roles: lead/qa/tech-writer/devops/developer. Developer has two skill types (feature, review); other roles have three:
 - **onboarding** — initial setup from template, processes `${ROLE_*}` placeholders
 - **feature** — ongoing work (write tests, update docs, modify CI, accumulate knowledge)
 - **audit** — check project against template and role conventions
@@ -47,6 +47,6 @@ After completing the main work of any `employees-*` skill, the skill MUST perfor
    - Propose concrete changes for each selected skill (which lines/sections, show diff)
    - Get user confirmation for changes
    - Apply changes to selected SKILL.md files
-   - For each modified SKILL.md: check consistency (phase sequence, mermaid flowchart, contradictions). If problems found → propose fixes → back to confirmation
+   - For each modified SKILL.md: check consistency (phase sequence, mermaid diagram, contradictions). If problems found → propose fixes → back to confirmation
    - Publish updated skills to the `.claude` git repository: `cd .claude`, stage all changes, commit with a descriptive message summarizing what was improved and why, push to the remote branch, then `cd ..` to return to the project root. **The working directory must always be the project root after this step.**
    - Confirm to user that skills are updated and published
