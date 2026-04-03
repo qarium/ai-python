@@ -2,6 +2,7 @@
 .idea
 
 # AI
+.claude/
 docs/plans
 
 # custom commands and skills
