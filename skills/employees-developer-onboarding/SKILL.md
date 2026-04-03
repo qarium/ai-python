@@ -43,11 +43,7 @@ flowchart TD
 
 ## Phase 1: Check
 
-1. Check if `.qarium/ai/employees/developer.md` exists
-2. If it exists and contains `## Rules` — warn the user:
-   > `.qarium/ai/employees/developer.md` already exists with Rules. Use the developer command for feature or review work.
-   Exit.
-3. If it does not exist or has no `## Rules` — proceed to Phase 2
+Pre-check is handled by the dispatcher (see When to use / DO NOT use above). Proceed directly to Phase 2.
 
 ## Phase 2: Config
 
@@ -132,7 +128,7 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 | Overwriting existing developer.md with Rules | Check first, warn and exit if found |
 | Writing developer.md without user approval | Present for review first |
 | Skipping the Config section | Config must always be present — feature and review skills read compile_cmd from here |
-| Leaving empty Conventions table | Always include the 17 base conventions |
+| Leaving empty Conventions table | Always include the 16 base conventions |
 | Forgetting empty Patterns and Lessons tables | Always create them empty — they will be filled during project work |
 | Hardcoding compile_cmd without asking | Always show config to user in Phase 2 for confirmation or customization |
 

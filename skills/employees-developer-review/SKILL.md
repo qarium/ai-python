@@ -1,6 +1,6 @@
 ---
 name: employees-developer:review
-description: Used when the user wants to review code changes for # AGENT: compliance, code quality (complexity, redundancy, consistency), and optionally remove processed markers. Stateless — no persistent knowledge file.
+description: Used when the user wants to review code changes for # AGENT: compliance, code quality (complexity, redundancy, consistency), and optionally remove processed markers.
 ---
 
 # Developer Review Flow
@@ -28,18 +28,13 @@ Presents all findings as a fix plan. User selects which to apply. After fixes, o
 
 Same as feature skill. See `employees-developer-feature` for full format specification.
 
-A `# AGENT:` block:
-1. First line starts with `# AGENT:`
-2. Continuation lines start with `#` (not `# AGENT:`) and follow immediately (no blank line between them)
-3. Block ends at the first non-comment line or a blank line within the `#` sequence
-
 ```mermaid
 flowchart TD
     start([Trigger: review]) --> collect
-    collect[Phase 1: Collect<br/>git diff → identify changed entities] -->|changes found| compliance
+    collect[Phase 1: Collect<br/>git diff → identify changed entities] -->|changes found| both
     collect -->|no changes| done([Done])
-    compliance[Phase 2: Agent compliance<br/>check code vs # AGENT: prompts] --> quality
-    quality[Phase 3: Code quality<br/>complexity, redundancy, consistency] --> fix
+    both{Phase 2: Agent compliance<br/>check code vs # AGENT:}
+    both{Phase 3: Code quality<br/>ALWAYS runs, even without markers} --> fix
     fix[Phase 4: Plan fixes<br/>user selects what to fix] --> cleanup
     cleanup[Phase 5: Cleanup<br/>ask user about # AGENT: removal] --> retro
     retro[Phase 6: Retrospective<br/>CLAUDE.md → Skill Retrospective] --> done
@@ -49,12 +44,7 @@ flowchart TD
 
 ### Step 1: Gather diff
 
-1. Run `git diff` (unstaged) + `git diff --cached` (staged)
-2. If both are empty — ask the user:
-   > No uncommitted changes found. Check the last commit?
-   > - **Yes** — use `git diff HEAD~1`
-   > - **No** — exit
-3. Identify all changed files from the diff
+Same as feature skill Phase 1 Step 1. See `employees-developer-feature` for full diff collection procedure.
 
 ### Step 2: Expand to enclosing entities
 
@@ -150,16 +140,7 @@ Only approved fixes are applied. Apply them one at a time, show `git diff` after
 
 ### Compile check after fixes
 
-Read `.qarium/ai/employees/developer.md` Config section to get `compile_cmd`. If the file or Config section is missing — inform the user that compile checks are skipped and proceed without them.
-
-If `compile_cmd` does not contain `<file>`, warn the user and skip compile checks for this session.
-
-After applying each fix:
-
-1. Replace `<file>` placeholder in `compile_cmd` with the changed file path. Quote the path if it contains spaces
-2. Run the compile command
-3. If compilation fails — show the error, fix it, re-compile
-4. Show `git diff` for the fix
+Same as feature skill Phase 4 compile check. See `employees-developer-feature` for full compile check procedure.
 
 ## Phase 5: Cleanup
 
@@ -182,18 +163,18 @@ If user chooses "Yes, remove all":
 
 ## Common mistakes
 
+Compile check and marker parsing mistakes are shared with the feature skill. See `employees-developer-feature` Common mistakes.
+
+Review-specific mistakes:
+
 | Mistake | Fix |
 |---------|-----|
 | Reviewing only changed lines instead of enclosing entities | Expand to full function/class in Phase 1 |
-| Treating all `#` comments as AGENT blocks | Only blocks starting with `# AGENT:` |
 | Removing markers without asking | Always ask in Phase 5 Cleanup |
 | Removing markers in files not touched by fixes | Only remove from changed files identified in Phase 1 |
 | Grouping all findings by severity instead of source | Group by source (compliance vs quality) then by severity |
 | Applying fixes without user approval | Present plan, wait for selection |
 | Skipping the compliance check when no AGENT markers exist | Still run Phase 3 quality checks |
-| Not parsing multi-line AGENT blocks | Always collect continuation `#` lines after `# AGENT:` |
-| Skipping compile check after applying fixes | Always run compile_cmd from developer.md Config after each fix |
-| Running compile check without reading developer.md | Read compile_cmd from Config, do not hardcode the command |
 | Skipping convention compliance check | Always read Conventions from developer.md Rules and check code against them |
 
 ## Phase 6: Retrospective
