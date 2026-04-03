@@ -1,6 +1,6 @@
 ---
 name: employees-developer:review
-description: Used when the user wants to review code changes for # AGENT: compliance, code quality (complexity, redundancy, consistency), and optionally remove processed markers.
+description: Used when the user wants to review code changes for # AGENT: compliance, code quality (complexity, redundancy, consistency) and optionally remove processed markers.
 ---
 
 # Developer Review Flow
