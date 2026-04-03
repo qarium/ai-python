@@ -88,7 +88,7 @@ Check the expanded entities (from Phase 1 Step 2) for quality issues.
 
 ### Convention compliance
 
-Read `.qarium/ai/employees/developer.md` Rules → Conventions section. Check each changed entity for violations of these conventions. If the file or Conventions section is missing — skip this check.
+Read `.qarium/ai/employees/developer.md` Rules → Conventions section. For **each** convention row in the table, check **each** changed entity for violations. Do not skip convention rows — if the table has N rules, all N must be checked against every changed entity. If the file or Conventions section is missing — skip this check.
 
 ### New code checks
 

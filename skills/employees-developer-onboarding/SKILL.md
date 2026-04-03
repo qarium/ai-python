@@ -87,7 +87,7 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 | typed signatures | All function/method signatures must have type annotations for parameters and return types |
 | Python 3.10 compat | Code must run on Python 3.10+ — use `t.Optional[X]` instead of `X | None`, `t.Union` instead of `X | Y` in runtime contexts (dataclass fields, function defaults) |
 | typing alias | Use `import typing as t` instead of `from typing import ...` |
-| No if/else in logic | Do not use if/else anywhere except module globals |
+| No if/else in logic | Do not use if/else block statements anywhere except module globals; ternary expressions (`x if cond else y`) are allowed |
 | No staticmethod classes | Classes with only static methods are modules — use modules instead |
 | classmethod constructors | Use classmethod as alternative constructors (initializers) |
 | No singleton classes | Singleton class is a module — use modules instead |
