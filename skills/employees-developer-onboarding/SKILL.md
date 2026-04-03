@@ -88,6 +88,8 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 |------|-------------|
 | constants module | Constants-only modules must be imported as a whole (`import constants`) and accessed via `constants.NAME` |
 | typed constants | All constants must be typed with `t.Final` or `t.Final[<type>]` |
+| typed signatures | All function/method signatures must have type annotations for parameters and return types |
+| Python 3.10 compat | Code must run on Python 3.10+ — use `t.Optional[X]` instead of `X | None`, `t.Union` instead of `X | Y` in runtime contexts (dataclass fields, function defaults) |
 | typing alias | Use `import typing as t` instead of `from typing import ...` |
 | No if/else in logic | Do not use if/else anywhere except module globals |
 | No staticmethod classes | Classes with only static methods are modules — use modules instead |
@@ -129,7 +131,7 @@ Create `.qarium/ai/employees/developer.md`. All file content is written in Engli
 | Overwriting existing developer.md with Rules | Check first, warn and exit if found |
 | Writing developer.md without user approval | Present for review first |
 | Skipping the Config section | Config must always be present — feature and review skills read compile_cmd from here |
-| Leaving empty Conventions table | Always include the 14 base conventions |
+| Leaving empty Conventions table | Always include the 16 base conventions |
 | Forgetting empty Patterns and Lessons tables | Always create them empty — they will be filled during project work |
 | Hardcoding compile_cmd without asking | Always show config to user in Phase 2 for confirmation or customization |
 
