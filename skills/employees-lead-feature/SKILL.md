@@ -35,6 +35,7 @@ flowchart TB
     scan["Phase 1: Context scanning<br/>Code review + strictacode analysis + conversation"]
     extract["Phase 2: Extraction and categorization<br/>5 sections"]
     present["Phase 3: Review presentation<br/>User confirms"]
+    annotate["Phase 3.5: AGENT annotations<br/>Place # AGENT: in code"]
     add["Phase 4: Adding new knowledge<br/>to lead.md"]
     summarize["Phase 5: Summary and optimization<br/>merge, compress, remove"]
     audit["Phase 6: Audit<br/>cross-check lead.md + strictacode"]
@@ -47,7 +48,8 @@ flowchart TB
     mode -->|"argument: audit"| audit
     scan --> extract
     extract --> present
-    present -->|"approved"| add
+    present -->|"approved"| annotate
+    annotate --> add
     present -->|"rejected"| done
     add --> summarize
     summarize --> retro
@@ -136,7 +138,11 @@ For each modified file, extract signals:
 - Abstraction leaks, encapsulation violations
 - Overly broad function/method responsibility
 
-For each problem found, formulate solution options (1-3 options with evaluation).
+For each problem found, formulate an `# AGENT:` instruction — a single-line or multi-line comment describing what needs to be done. Format:
+- Single-line: `# AGENT: Extract _walk_swift_files into shared module`
+- Multi-line: `# AGENT: Refactor this function to reduce complexity\n# Extract helper for validation logic\n# Extract helper for error formatting`
+
+Each instruction must be specific enough for a future AI agent to execute without additional context.
 
 #### Step 5: Conversation analysis
 
@@ -182,8 +188,8 @@ Extracted entries by section. For overlaps, show the existing entry alongside th
 **Block 2: Problems in the code**
 Problems found during the git diff review (step 4 of Phase 1). For each problem:
 - Problem description with file reference
-- Solution options (1-3 options with evaluation)
-- Recommended option
+- `# AGENT:` instruction text (single-line or multi-line)
+- Exact location: `file:line` where the instruction should be placed
 
 **Block 3: Impact on project health** (only if strictacode analysis was performed)
 Findings from mapping the strictacode report against the modified files:
@@ -196,11 +202,32 @@ Findings from mapping the strictacode report against the modified files:
 The user can:
 - Approve/reject/modify individual knowledge entries
 - Select solution options for problems from Block 2 — approved solutions should be added to **TODO**
+- Select `# AGENT:` instructions from Block 2 — approved instructions will be placed in the source code at the specified location
 - Select action options for improving metrics from Block 3 — approved ones should be added to **TODO**
 - Add their own entries
 - Reject the entire package
 
 Wait for approval.
+
+## Phase 3.5: AGENT Annotations
+
+For each approved `# AGENT:` instruction from Block 2 of Phase 3:
+
+1. Read the target file
+2. Place the instruction **on the line immediately before** the relevant function/class/code block
+3. Multi-line instructions use the format:
+   ```
+   # AGENT: First line of the instruction
+   # Second line
+   # Third line
+   ```
+4. Single-line instructions use the format:
+   ```
+   # AGENT: Single instruction
+   ```
+5. DO NOT modify any code — only add comment lines
+
+The placed instructions serve as tasks for future AI agent sessions. A developer or agent reading the file will see these markers and can act on them.
 
 ## Phase 4: Adding New Knowledge
 
@@ -377,6 +404,7 @@ Form a table:
 | Modifying entries during audit without approval | Audit only reports — changes require user approval                                              |
 | Skipping strictacode during audit               | Always invoke strictacode if the skill is available                                             |
 | Overwriting Config during Phase 5               | Only update `default_branch` if it has changed; do not add or remove other Config keys          |
+| Editing source code directly instead of placing AGENT annotations | Only add `# AGENT:` comments — actual code changes are done by agents in future sessions |
 
 ## Phase 7: Retrospective
 
