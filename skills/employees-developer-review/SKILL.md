@@ -105,6 +105,7 @@ Read `.qarium/ai/employees/developer.md` Rules → Conventions section. Check ea
 | Check | What to look for | Severity guideline |
 |-------|-------------------|-------------------|
 | Convention compliance | Code violates rules from developer.md Conventions (e.g., wrong import style, if/else in logic, staticmethod classes) | **warning** or **critical** for structural violations |
+| Docstring consistency | Docstrings must be consistent with function signatures (parameter names, types) and actual logic (described behavior matches code behavior) | **warning** or **critical** if logic is misrepresented |
 | Cyclomatic complexity | Deep nesting (>3 levels), many branches (>5 if/elif/for/while in one function) | **warning** or **critical** if >5 levels |
 | Redundancy | Duplicated logic, copy-pasted code blocks, unnecessary helper functions | **suggestion** or **warning** if significant |
 | Dead code | Unused variables, unreachable branches, commented-out code | **suggestion** |
