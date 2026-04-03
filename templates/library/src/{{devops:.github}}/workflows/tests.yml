@@ -4,23 +4,9 @@ on:
     branches: [${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}]
   pull_request:
     branches: [${DEVOPS_TRIGGER_BRANCH:="master. Determine from lead.md Config or git symbolic-ref."}]
+
 jobs:
   test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ${DEVOPS_PYTHON_MATRIX:="derive from requires-python, e.g. >=3.10 → [\"3.10\", \"3.11\", \"3.12\", \"3.13\", \"3.14\"]"}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-      - run: pip install -e ".[test]"
-      - run: ${DEVOPS_TEST_CMD:="pytest --tb=short. Use run_tests_cmd from qa.md Config."}
+    uses: qarium/ci/.github/workflows/library-tests.yml@0.0.x
+    with:
+      python-versions: '${DEVOPS_PYTHON_MATRIX:="derive from requires-python, e.g. >=3.10 → [\"3.10\", \"3.11\", \"3.12\", \"3.13\", \"3.14\"]"}'
