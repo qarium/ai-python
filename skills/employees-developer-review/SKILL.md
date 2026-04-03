@@ -90,6 +90,8 @@ Check the expanded entities (from Phase 1 Step 2) for quality issues.
 
 Read `.qarium/ai/employees/developer.md` Rules → Conventions section. For **each** convention row in the table, check **each** changed entity for violations. Do not skip convention rows — if the table has N rules, all N must be checked against every changed entity. If the file or Conventions section is missing — skip this check.
 
+For conventions that apply to code structure (e.g. visual block separation, no if/else), scan the **full body** of each changed function line by line — do not just check whether the pattern exists somewhere, verify it is followed everywhere inside the entity.
+
 ### New code checks
 
 | Check | What to look for | Severity guideline |
