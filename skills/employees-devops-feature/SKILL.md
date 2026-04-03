@@ -16,6 +16,18 @@ Skill for maintaining the project's CI/CD infrastructure. Manages workflows acro
 
 Reads configuration from `.qarium/ai/employees/devops.md` (Config + Rules), as well as qa.md and tech-writer.md for actual commands used in CI.
 
+### CI Architecture
+
+The project uses **reusable workflows** from `qarium/ci` (branch `0.0.x`) for shared CI logic:
+
+| Workflow type | Location | Examples |
+|---|---|---|
+| **Caller** (project repo `.github/workflows/`) | Thin wrappers with `uses:`, `with:`, `secrets:` | tests.yml, publish.yml, new_version.yml |
+| **Reusable** (ci repo `.github/workflows/`) | Full job definitions with `workflow_call` | library-tests.yml, library-publish.yml, library-new-version.yml |
+| **Project-specific** (project repo `.github/workflows/`) | Full workflow definitions | lint.yml, docs.yml, strictacode.yml |
+
+When modifying callers — only change `uses:`, `with:` inputs, or `secrets:`. Do NOT add steps, jobs, or runs-on to caller workflows.
+
 ## When to use
 
 - After changing project dependencies (pyproject.toml)
@@ -120,14 +132,14 @@ This applies to any phase that executes shell commands (pip, python).
 
 | Change                                           | CI action                                |
 |--------------------------------------------------|------------------------------------------|
-| qa.md Config: `lint_cmd` / `format_cmd` changed  | Update commands in `lint.yml`            |
-| qa.md Config: `lint_fix_cmd` changed             | Update commands in `lint.yml` (fix step) |
-| qa.md Config: `format_fix_cmd` changed           | Update commands in `lint.yml` (fix step) |
-| qa.md Config: `run_tests_cmd` changed            | Update command in `tests.yml`            |
-| tech-writer.md Config: `build_cmd` changed       | Update command in `docs.yml`             |
-| pyproject.toml: `requires-python`                | Update Python matrix in `tests.yml`      |
+| qa.md Config: `lint_cmd` / `format_cmd` changed  | Update commands in `lint.yml` (project-specific) |
+| qa.md Config: `lint_fix_cmd` changed             | Update commands in `lint.yml` (project-specific) |
+| qa.md Config: `format_fix_cmd` changed           | Update commands in `lint.yml` (project-specific) |
+| qa.md Config: `run_tests_cmd` changed            | No action needed — test command is a default in the reusable workflow at `qarium/ci`. Only update if caller explicitly overrides `test-command` input |
+| tech-writer.md Config: `build_cmd` changed       | Update command in `docs.yml` (project-specific) |
+| pyproject.toml: `requires-python`                | Update `python-versions` input in `tests.yml` caller |
 | New `[project.optional-dependencies]` group      | May require a new install step in CI     |
-| pyproject.toml: `[build-system]`                 | Update `publish.yml`                     |
+| pyproject.toml: `[build-system]`                 | No action needed — publish is in ci repo |
 | Files `.github/workflows/*.yml` changed directly | Update devops.md Workflow Registry       |
 | Change of trigger_branch in devops.md Config     | Update triggers in all workflows         |
 | Strictacode workflow missing | Create `strictacode.yml` workflow and `.strictacode.yml` config |
@@ -317,7 +329,7 @@ Used when the user asks to verify CI for discrepancies with project configuratio
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | Python matrix in tests.yml vs `requires-python`                                        | Matrix does not cover the minimum version or contains outdated versions |
 | Dependency group in `pip install -e ".[<group>]"` vs `[project.optional-dependencies]` | Group does not exist or has been renamed                                |
-| Python version in publish.yml vs `requires-python`                                     | Version is below minimum                                                |
+| Python version in publish.yml vs `requires-python`                                     | Version is below minimum — only applicable if caller overrides `python-version` input |
 
 **qa.md Config checks:**
 
@@ -410,6 +422,9 @@ Generate a table:
 | Forgetting to create `.strictacode.yml` alongside workflow          | Always check for `.strictacode.yml` when creating strictacode workflow                       |
 | Adding generic CI best practices as Conventions                     | Only add project-specific CI patterns that an AI agent would not know from general knowledge |
 | Skipping Conventions audit                                          | Always check that existing Conventions are still followed in workflows during Phase 7 audit  |
+| Adding steps/jobs to caller workflows (tests, publish, new_version) | Callers contain only `uses:`, `with:`, `secrets:` — no steps, no runs-on, no strategy        |
+| Modifying reusable workflow internals from project repo              | Reusable workflows live in `qarium/ci` repo — modify there, not in the project               |
+| Missing `permissions:` in caller workflows                          | Cross-repo reusable workflows cannot self-grant permissions — caller must set them explicitly |
 
 ## Phase 8: Retrospective
 

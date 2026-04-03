@@ -36,10 +36,10 @@ Read workflow files and find all `${DEVOPS_*}` placeholders:
 | DEVOPS_LINT_CHECK_ARGS | lint.yml | From `qa.md` Config `lint_cmd` — extract check arguments (e.g. `check <source>/ tests/`) |
 | DEVOPS_LINT_FORMAT_ARGS | lint.yml | From `qa.md` Config `format_cmd` — extract format arguments (e.g. `format --check <source>/ tests/`) |
 | DEVOPS_PYTHON_MATRIX | tests.yml | Derive from `requires-python` (e.g. `>=3.10` → `["3.10", "3.11", "3.12", "3.13", "3.14"]`) |
-| DEVOPS_TEST_CMD | tests.yml | From `qa.md` Config `run_tests_cmd`, or `pytest --tb=short` |
 | DEVOPS_DEPLOY_CMD | docs.yml | From `tech-writer.md` Config `deploy_cmd`, or `mkdocs gh-deploy --force` |
-| DEVOPS_PUBLISH_PYTHON | publish.yml | Derive from `requires-python`, typically `3.12` |
 | DEVOPS_SC_* | strictacode.yml | Ask user for thresholds, use defaults if skipped |
+
+**Note:** `DEVOPS_TEST_CMD` and `DEVOPS_PUBLISH_PYTHON` were removed — these are now defaults in the reusable workflows at `qarium/ci`. Callers (tests.yml, new_version.yml, publish.yml) only pass `python-versions` and `src-package` as inputs; the reusable workflow handles commands internally.
 
 Replace the entire `${DEVOPS_VARIABLE:="prompt"}` with the computed value. Do NOT modify `${QA_*}`, `${TECH_WRITER_*}` placeholders.
 
@@ -100,6 +100,7 @@ Present the summary to the user before proceeding to Phase 2. The summary includ
 - Commands from tech-writer.md (if it exists)
 - Dependency groups from pyproject.toml
 - Presence/absence of existing workflows
+- CI reusable workflows: `qarium/ci` at branch `0.0.x` (for tests, publish, new_version)
 
 ## Phase 2: Process DEVOPS_* Placeholders
 
@@ -223,6 +224,8 @@ Create the DevOps configuration file. The entire contents of the file are writte
 | Hardcoding `main` or `master` as trigger branch                              | Always determine from lead.md Config or git auto-detect                                   |
 | Leaving `${DEVOPS_*}` placeholders in workflow files                         | All DEVOPS_* placeholders must be resolved in Phase 2                                     |
 | Forgetting to create `.strictacode.yml` alongside strictacode workflow       | Always check for `.strictacode.yml` when keeping strictacode workflow                     |
+| Creating full workflows for tests/publish/new_version instead of callers    | These three are callers referencing `qarium/ci/.github/workflows/library-*.yml@0.0.x`     |
+| Adding `permissions:` to caller workflows for tests/publish/new_version     | `permissions:` are required in callers for `publish.yml` and `new_version.yml` (cross-repo limitation), but NOT needed for `tests.yml` |
 
 ## Phase 5: Retrospective
 

@@ -32,7 +32,7 @@ Uses `.claude/templates/library/src/` as reference.
 
 ### DevOps-owned placeholders
 
-`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml, publish.yml), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_TEST_CMD}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_PUBLISH_PYTHON}`, `${DEVOPS_SC_*}`
+`${DEVOPS_TRIGGER_BRANCH}`, `${DEVOPS_PACKAGE_SNAKE}` (strictacode.yml, publish.yml), `${DEVOPS_LINT_CHECK_ARGS}`, `${DEVOPS_LINT_FORMAT_ARGS}`, `${DEVOPS_PYTHON_MATRIX}`, `${DEVOPS_DEPLOY_CMD}`, `${DEVOPS_SC_*}`
 
 Any remaining `${DEVOPS_*}` in project files is a finding.
 
@@ -62,6 +62,22 @@ flowchart LR
 3. Compare each workflow
 
 ### Cross-checks per workflow
+
+**Determine workflow type first:**
+- **Caller** — contains `uses: qarium/ci/.github/workflows/library-*.yml@*` → check `with:` inputs and `secrets:`
+- **Project-specific** — full workflow definition → check commands, triggers, actions as before
+
+**Caller workflow checks (tests, new_version, publish):**
+
+| Check | Status on discrepancy |
+|-------|----------------------|
+| `uses:` references `qarium/ci` at correct branch | **inaccurate** — wrong ci repo or branch |
+| `with: python-versions` matches `requires-python` in pyproject.toml | **stale** — matrix doesn't cover min version |
+| `with: src-package` matches actual package directory | **inaccurate** — wrong package name |
+| `secrets:` uses correct secret names | **inaccurate** — secret mapping is wrong |
+| `permissions:` is set in caller for cross-repo calls | **missing** — reusable workflow can't self-grant permissions |
+
+**Project-specific workflow checks (lint, docs, strictacode):**
 
 **pyproject.toml checks:**
 
@@ -149,6 +165,8 @@ The user selects which issues to fix. For each:
 | Not cross-checking with qa.md/tech-writer.md | Commands in CI must match role configs |
 | Fixing without verifying YAML | Always validate YAML after changes |
 | Deleting workflows without confirmation | Always ask before deleting |
+| Treating callers as full workflows | Callers (tests, publish, new_version) contain only `uses:` + `with:` + `secrets:` — check inputs, not internal steps |
+| Checking commands inside caller workflows | Commands are in the reusable workflow at `qarium/ci` — callers only pass parameters |
 
 ## Phase 5: Retrospective
 
