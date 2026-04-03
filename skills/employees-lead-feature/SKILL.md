@@ -91,7 +91,7 @@ Analyze the current conversation and git changes for technically important infor
 
 ### New Code Review (git diff + strictacode + conversation)
 
-Execution order: change collection -> strictacode analysis -> mapping -> finding problems and solutions -> conversation.
+Execution order: change collection -> strictacode analysis -> mapping -> finding problems and AGENT instructions -> conversation.
 
 #### Step 1: Change collection
 
@@ -201,7 +201,6 @@ Findings from mapping the strictacode report against the modified files:
 
 The user can:
 - Approve/reject/modify individual knowledge entries
-- Select solution options for problems from Block 2 — approved solutions should be added to **TODO**
 - Select `# AGENT:` instructions from Block 2 — approved instructions will be placed in the source code at the specified location
 - Select action options for improving metrics from Block 3 — approved ones should be added to **TODO**
 - Add their own entries
@@ -215,19 +214,9 @@ For each approved `# AGENT:` instruction from Block 2 of Phase 3:
 
 1. Read the target file
 2. Place the instruction **on the line immediately before** the relevant function/class/code block
-3. Multi-line instructions use the format:
-   ```
-   # AGENT: First line of the instruction
-   # Second line
-   # Third line
-   ```
-4. Single-line instructions use the format:
-   ```
-   # AGENT: Single instruction
-   ```
+3. Multi-line: `# AGENT: First line\n# Second line\n# Third line`
+4. Single-line: `# AGENT: Single instruction`
 5. DO NOT modify any code — only add comment lines
-
-The placed instructions serve as tasks for future AI agent sessions. A developer or agent reading the file will see these markers and can act on them.
 
 ## Phase 4: Adding New Knowledge
 
