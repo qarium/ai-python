@@ -26,13 +26,17 @@ Your job is to:
 ## Core Model
 
 ### Package model
-- Each `.agent.yml` defines the **facade contract** of a package.
+- Each `.agent.yml` defines the **facade contract** of a package or subpackage.
+- A package may have `.agent.yml` files at multiple levels — one per subpackage that has its own contract.
 - The contract describes what must be accessible from the package facade.
 - The contract is the required public surface of the package.
 - The package is treated as an isolated part with external interaction only through contracts.
+- A parent `.agent.yml` may import and re-export entities from child `.agent.yml` files via `Module` imports and `->` re-exports.
 
 ### Entity model
-- Contract entities may be classes, functions, objects, or other facade-level entities.
+- Contract entities may be classes or standalone functions.
+- Entity blocks define classes with `properties` and `methods`.
+- The `functions` section defines standalone facade-level functions — not methods of a class.
 - All contract entities must be preserved in the plan.
 - Contract entities must not be silently removed, collapsed, renamed, or replaced with unrelated abstractions.
 
@@ -72,7 +76,7 @@ You must not plan:
 
 Use the following sources together when available:
 
-1. `.agent.yml` — located **inside the package directory** (e.g., `resq/.agent.yml`). If not found inside the package, also check the project root as a fallback.
+1. `.agent.yml` — located **inside the package directory** (e.g., `resq/.agent.yml`). Subpackages may have their own `.agent.yml` files (e.g., `resq/utils/.agent.yml`). If not found inside the package, also check the project root as a fallback. Read **all** `.agent.yml` files to build the complete contract.
 2. current file tree of the package
 3. current package source files
 4. git-oriented change context:
@@ -122,7 +126,7 @@ Any architectural choice not explicitly stated in the contract must be listed as
 Read the detailed syntax rules from `dsl-spec.md`.
 
 ### Descriptions are mandatory
-Descriptions attached to properties and methods are not comments.
+Descriptions attached to properties, methods, and functions are not comments.
 They define:
 - meaning,
 - behavioral expectations,
@@ -135,6 +139,24 @@ These requirements must appear in the plan.
 ### Imports are contract dependencies
 Imports define external contract dependencies.
 Do not locally redefine imported contract types unless the contract explicitly requires it.
+
+### Libraries are implementation context
+`Libraries` describes external packages the implementation depends on.
+They provide context for the implementation agent — what each library does and how to use it.
+Planning agents must include library context in the plan so the implementation agent understands available tools.
+
+### Re-exports are facade obligations
+Re-export blocks (`->Name: {}`) define names that must be available on the facade without local implementation.
+The planning agent must ensure each re-exported name is importable from the package `__init__.py`.
+
+### Annotations are context hints
+`annotations` at file-level, entity-level, or function-level provide metadata and context.
+They do not define contract obligations.
+Planning agents should use annotations as context hints but must not treat annotation text as contract requirements.
+
+### Standalone functions are contract entities
+The `functions` section defines standalone facade-level functions.
+They have the same contract weight as entity methods — same obligations for `dest`, `description`, and facade availability.
 
 ---
 
@@ -150,6 +172,10 @@ Your plan must answer all of the following:
 6. What must be changed first?
 7. How will correctness be validated?
 8. What exactly must be tested?
+9. What must be re-exported without implementation?
+10. What standalone functions must be implemented?
+11. What external libraries does the implementation depend on (from `Libraries`)?
+12. What annotations provide important context?
 
 ---
 
@@ -285,7 +311,7 @@ A bad plan:
 
 Before finalizing the answer, verify:
 
-1. Did I include every contract entity?
+1. Did I include every contract entity (classes and standalone functions)?
 2. Did I preserve every `dest` obligation?
 3. Did I preserve facade availability requirements?
 4. Did I include semantic requirements from descriptions?
@@ -297,5 +323,9 @@ Before finalizing the answer, verify:
 10. Did I keep all changes inside the current package boundary?
 11. Did I distinguish contract tests from internal tests?
 12. Did I mention missing workspace or git context when unavailable?
+13. Did I include re-export obligations in the plan?
+14. Did I include `Libraries` context for the implementation agent?
+15. Did I process all hierarchical `.agent.yml` files (not just the root)?
+16. Did I consider `annotations` as context hints?
 
 If any answer is “no”, revise the plan before returning it.
