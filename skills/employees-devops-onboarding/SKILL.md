@@ -115,6 +115,7 @@ Determine which workflows are needed:
 | Docs        | tech-writer.md exists (contains `build_cmd`)                                          |
 | Publish     | `[build-system]` and `[project]` with `name` exist in pyproject.toml                  |
 | New Version | Always include alongside Publish. Creates X.Y.x version branches, sets as default.   |
+| Notify      | Always include alongside Publish. Telegram notification on release via `library-notify.yml` from `qarium/ci`. |
 | Strictacode | Always include by default. User can exclude during confirmation step. |
 
 Present the detected set to the user. The user can:
@@ -225,6 +226,7 @@ Create the DevOps configuration file. The entire contents of the file are writte
 | Leaving `${DEVOPS_*}` placeholders in workflow files                         | All DEVOPS_* placeholders must be resolved in Phase 2                                     |
 | Forgetting to create `.strictacode.yml` alongside strictacode workflow       | Always check for `.strictacode.yml` when keeping strictacode workflow                     |
 | Creating full workflows for tests/publish/new_version instead of callers    | These three are callers referencing `qarium/ci/.github/workflows/library-*.yml@0.0.x`     |
+| Creating full workflow for notify instead of caller                          | Notify is a caller referencing `qarium/ci/.github/workflows/library-notify.yml@0.0.x`    |
 | Adding `permissions:` to caller workflows for tests/publish/new_version     | `permissions:` are required in callers for `publish.yml` and `new_version.yml` (cross-repo limitation), but NOT needed for `tests.yml` |
 
 ## Phase 5: Retrospective

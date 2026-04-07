@@ -27,6 +27,7 @@ Uses `.claude/templates/library/src/` as reference.
 | `{{devops:.github}}/workflows/tests.yml` | `.github/workflows/tests.yml` | Trigger branch, Python matrix, test command |
 | `{{devops:.github}}/workflows/docs.yml` | `.github/workflows/docs.yml` | Trigger branch, deploy command |
 | `{{devops:.github}}/workflows/publish.yml` | `.github/workflows/publish.yml` | Python version, package source dir, PyPI token, release notes model |
+| `{{devops:.github}}/workflows/notify.yml` | `.github/workflows/notify.yml` | Caller references `library-notify.yml`, secrets: TELEGRAM_TOKEN, TELEGRAM_CHAT_ID |
 | `{{devops:.github}}/workflows/new_version.yml` | `.github/workflows/new_version.yml` | Branch pattern, default branch check, ADMIN_TOKEN secret |
 | `{{devops:.github}}/workflows/strictacode.yml` | `.github/workflows/strictacode.yml` | Source dir, thresholds |
 
@@ -67,7 +68,7 @@ flowchart LR
 - **Caller** — contains `uses: qarium/ci/.github/workflows/library-*.yml@*` → check `with:` inputs and `secrets:`
 - **Project-specific** — full workflow definition → check commands, triggers, actions as before
 
-**Caller workflow checks (tests, new_version, publish):**
+**Caller workflow checks (tests, new_version, publish, notify):**
 
 | Check | Status on discrepancy |
 |-------|----------------------|
@@ -115,6 +116,7 @@ flowchart LR
 | qa.md with `run_tests_cmd` + no tests workflow | **missing** |
 | tech-writer.md with `build_cmd` + no docs workflow | **missing** |
 | No strictacode workflow | **missing** |
+| publish workflow + no notify workflow | **missing** — notify caller should accompany publish |
 | strictacode workflow + no `.strictacode.yml` | **missing** |
 | `[tool.ruff]` in pyproject.toml + no lint workflow | **missing** |
 | `[tool.pytest.ini_options]` in pyproject.toml + no tests workflow | **missing** |
