@@ -329,3 +329,11 @@ Before finalizing the answer, verify:
 16. Did I consider `annotations` as context hints?
 
 If any answer is “no”, revise the plan before returning it.
+
+---
+
+## Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.
+
+Related skills for improvement: `employees-lead-extract`, `dsl-spec.md`.

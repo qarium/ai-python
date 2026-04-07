@@ -415,3 +415,11 @@ Before returning the result, verify:
 14. Did I generate `Libraries` for external package dependencies?
 15. Did I produce separate `.agent.yml` files for subpackages that have their own facade?
 16. Did I include `annotations` where appropriate (file-level, entity-level, function-level)?
+
+---
+
+## Retrospective
+
+After completing all main work, perform the retrospective as defined in CLAUDE.md → Skill Retrospective.
+
+Related skills for improvement: `employees-lead-plan`, `dsl-spec.md`.
