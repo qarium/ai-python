@@ -72,7 +72,8 @@ A single `.agent.yml` may contain:
 - entity blocks (classes),
 - a `functions` section (standalone functions),
 - re-export blocks (pass-through types and modules),
-- an `Imports` section (external dependencies).
+- an `Imports` section (external types and modules used in signatures),
+- a `Libraries` section (external library dependencies with context).
 
 ---
 
@@ -105,8 +106,32 @@ Semantics:
 - Imported types are external dependencies.
 - Importing a type or module does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
+### `Libraries`
+Defines external library dependencies — packages that the implementation relies on but are not locally defined.
+
+Example:
+
+```yaml
+Libraries:
+  - importlib:
+      spec: .specs/importlib.md
+      annotations: |
+        Библиотека для загрузки python объектов в runtime.
+  - requests:
+      annotations: |
+        HTTP-клиент для отправки запросов.
+```
+
+Semantics:
+- Each entry key is the **library name** (Python package name).
+- `spec` is **optional** — a path to a file with detailed documentation, usage examples, or notes about the library. Relative to the `.agent.yml` file location.
+- `annotations` is **optional** — a free-form text description of what the library is and how it is used in the package.
+- At least one of `spec` or `annotations` should be present for each library entry.
+- `Libraries` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
+- `Libraries` is separate from `Imports`. `Imports` declares types and modules used in contract signatures. `Libraries` describes external packages the implementation depends on.
+
 ### `---` separator
-Optional YAML document separator. May be used to visually separate `Imports` from entity definitions.
+Optional YAML document separator. May be used to visually separate `Imports` and `Libraries` from entity definitions.
 
 ### Entity blocks
 Each top-level entity block defines one facade-level class.
@@ -194,6 +219,7 @@ Semantics:
 Each entity block may contain:
 
 - `dest`
+- `annotations` (optional)
 - `properties` (optional)
 - `methods` (optional)
 
@@ -214,6 +240,38 @@ Semantics:
 This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
 
 `dest` is relative to the `.agent.yml` file that defines the entity.
+
+### `annotations`
+`annotations` is optional. Provides structured metadata about the entity that persists through YAML parsing.
+
+Example:
+
+```yaml
+Object:
+  dest: file.py
+  annotations: |
+      Description of the entity.
+      May include notes about source, design decisions, or caveats.
+```
+
+Semantics:
+- Contains free-form text metadata about the entity.
+- Does **not** define contract obligations — no implementation requirement is derived from annotations.
+- Persists through YAML parsing unlike `#` comments.
+- May describe: source of the entity, extraction notes, design rationale, known limitations.
+- Planning agents should use annotations as context hints but must not treat annotation text as contract requirements.
+
+Annotations may also appear on individual function entries:
+
+```yaml
+functions:
+  - "join(*parts: str) -> joined:str":
+      dest: url.py
+      annotations: |
+          Extracted from url.py — signature verified.
+      description: |
+          Joins URL parts into a single URL string.
+```
 
 ### `properties`
 Properties describe facade-visible data access of the entity.
@@ -342,9 +400,57 @@ Rules:
 
 ## Annotation System
 
-The DSL supports YAML comments as annotations for metadata that does not affect the contract structure.
+The DSL supports two levels of annotation.
 
-### Inferred descriptions
+### Structured annotations (`annotations` field)
+
+Structured annotations may appear at three levels: file-level, entity-level, and function-level.
+They persist through YAML parsing and are accessible programmatically.
+
+#### File-level annotations
+
+Placed at the top of `.agent.yml`, before entity blocks. Describes the module or subpackage as a whole.
+
+```yaml
+annotations: |
+    Module-level description or notes about this subpackage.
+
+Object:
+  dest: file.py
+  properties:
+  methods:
+```
+
+#### Entity-level annotations
+
+Placed inside an entity block.
+
+```yaml
+Object:
+  dest: file.py
+  annotations: |
+      Extracted from external library — signature verified.
+  properties:
+  methods:
+```
+
+#### Function-level annotations
+
+Placed inside a function entry.
+
+```yaml
+functions:
+  - "join(*parts: str) -> joined:str":
+      dest: url.py
+      annotations: |
+          Extracted from url.py — signature verified.
+      description: |
+          Joins URL parts into a single URL string.
+```
+
+### Inline annotations (YAML comments)
+
+YAML comments (`#`) are used for lightweight, non-structural annotations that do not survive YAML parsing.
 
 When a description is inferred from code rather than extracted from a docstring:
 
@@ -357,6 +463,16 @@ This annotation may appear:
 - inline before a specific property, method, or function.
 
 Planning agents should treat inferred descriptions as lower-confidence semantic hints and may flag them for user review.
+
+### When to use which
+
+| Use case | `annotations` field | YAML comment |
+|---|---|---|
+| Source or extraction note | yes | no |
+| Design rationale | yes | no |
+| Inferred description warning | no | yes |
+| Quick inline note | no | yes |
+| Machine-readable metadata | yes | no |
 
 ---
 
