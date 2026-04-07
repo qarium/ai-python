@@ -8,7 +8,8 @@ It describes:
 - which entities must be available from the package facade,
 - where each entity must be implemented inside the package,
 - what API each entity exposes,
-- what semantic and behavioral requirements apply.
+- what semantic and behavioral requirements apply,
+- which external types are re-exported through the facade.
 
 The DSL defines **what must exist** and **what it must mean**.
 It does not dictate the full internal implementation design.
@@ -17,7 +18,7 @@ It does not dictate the full internal implementation design.
 
 ## High-Level Model
 
-A package contains a `.agent.yml` file.
+A package contains a `.agent.yml` file inside the package directory.
 That file defines the package contract.
 
 The package is treated as an isolated unit.
@@ -54,16 +55,21 @@ Example:
         what is it, logic description
 ```
 
-A single `.agent.yml` may describe one or more facade-level entities.
+A single `.agent.yml` may describe one or more facade-level entities and re-exports.
 
-These entities may represent classes, functions, objects, or other public package members.
+Entity types:
+- **class** — a class with properties and methods (default kind).
+- **module** — a module imported as a whole, with functions as methods.
+- **function** — a standalone facade-level function.
+
+The kind is implicit unless `kind` is specified explicitly.
 
 ---
 
 ## Top-Level Sections
 
 ### `Imports`
-Defines imported contract types from other DSL contracts.
+Defines external types used in the contract.
 
 Example:
 
@@ -71,13 +77,21 @@ Example:
 Imports:
   - Type: Object
     From: "identity.yaml"
+  - Type: HTTPError
+    From: "requests"
 ```
 
 Semantics:
-- `Type` is the imported contract type name.
-- `From` is the source DSL path, relative to the working directory.
-- Imported types are external contract dependencies.
+- `Type` is the external type name.
+- `From` is the source:
+  - a `.yaml`/`.agent.yml` path for DSL contract dependencies (relative to working directory),
+  - a Python package name for external library types (e.g., `"requests"`).
+- Imported types are external dependencies.
 - They should be treated as contract-level references, not redefined locally by default.
+- Importing a type does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
+
+### `---` separator
+Optional YAML document separator. May be used to visually separate `Imports` from entity definitions.
 
 ### Entity blocks
 Each top-level entity block defines one facade-level contract entity.
@@ -93,18 +107,68 @@ Example:
 
 `Example` is the contract entity name.
 
+### Re-export blocks
+Each top-level re-export block makes an imported type available on the package facade without defining a contract for it.
+
+Syntax:
+
+```yaml
+"->TypeName": {}
+```
+
+The `->` prefix marks the entity as a re-export.
+The empty `{}` body means no contract obligations — the type is passed through as-is.
+
+Example:
+
+```yaml
+Imports:
+  - Type: HTTPError
+    From: "requests"
+
+---
+
+"->HTTPError": {}
+```
+
+Semantics:
+- The type must be importable from the package facade.
+- No `dest`, `properties`, or `methods` are defined — the implementation simply re-exports the type.
+- The type is not a contract entity — no implementation obligation exists.
+- The planning agent must ensure the type is available from the package `__init__.py`.
+
 ---
 
 ## Entity Block Semantics
 
 Each entity block may contain:
 
+- `kind` (optional)
 - `dest`
-- `properties`
-- `methods`
+- `properties` (optional)
+- `methods` (optional)
+
+### `kind`
+`kind` is optional. Default value is `class`.
+
+Values:
+- `class` — the entity is a class. Properties and methods map to class members.
+- `module` — the entity is a module imported as a whole (e.g., `from .utils import url`). Methods map to module-level functions. No `properties` section is expected.
+- `function` — the entity is a standalone facade-level function. A single method entry is expected, where the method name equals the entity name.
+
+Example:
+
+```yaml
+url:
+  kind: module
+  dest: utils/url.py
+  methods:
+    - "join(*parts: str) -> joined:str": |
+        Joins URL parts into a single URL string.
+```
 
 ### `dest`
-`dest` is mandatory.
+`dest` is mandatory for all entity kinds.
 
 Example:
 
@@ -119,8 +183,10 @@ Semantics:
 
 This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
 
+For `kind: module`, `dest` points to the module file itself.
+
 ### `properties`
-Properties describe facade-visible properties of the entity.
+Properties describe facade-visible data access of the entity.
 
 Example:
 
@@ -129,6 +195,8 @@ properties:
   - "Name -> name:Type": |
       what is it
 ```
+
+Properties section may be omitted when the entity has no facade-visible properties.
 
 #### Property signature format
 
@@ -146,6 +214,14 @@ Important:
 - the label is explanatory,
 - the label does not replace the actual property name.
 
+#### What counts as a property
+
+The properties section covers any facade-visible data accessor, regardless of implementation mechanism:
+- `@property` decorated methods,
+- public instance attributes (set in `__init__`, no `_` prefix).
+
+From the facade perspective these are indistinguishable — a consumer cannot tell whether `obj.name` is a `@property` or a plain attribute. The contract treats them the same.
+
 #### Property description
 The multiline text under the property is mandatory.
 It describes:
@@ -157,6 +233,10 @@ It describes:
 ### `methods`
 Methods describe facade-visible callable API.
 
+For `kind: class` — these are methods of the class.
+For `kind: module` — these are module-level functions.
+For `kind: function` — this is a single entry matching the entity itself.
+
 Example:
 
 ```yaml
@@ -164,6 +244,8 @@ methods:
   - "method(name: Object) -> void:None": |
       what is it, logic description
 ```
+
+Methods section may be omitted when the entity has no facade-visible callable API (rare but valid).
 
 #### Method signature format
 
@@ -207,6 +289,40 @@ It must be reflected in:
 
 ---
 
+## Annotation System
+
+The DSL supports YAML comments as annotations for metadata that does not affect the contract structure.
+
+### Inferred descriptions
+
+When a description is inferred from code rather than extracted from a docstring:
+
+```yaml
+# NOTE: description inferred — review for accuracy
+```
+
+This annotation may appear:
+- at the top of the file, if most descriptions are inferred,
+- inline before a specific property or method.
+
+Planning agents should treat inferred descriptions as lower-confidence semantic hints and may flag them for user review.
+
+---
+
+## Facade Scope
+
+The package facade is the set of names available via `import package` or `from package import ...`.
+
+Facade exposure may happen at different levels:
+- **primary facade** — available from the top-level `__init__.py`,
+- **secondary facade** — available from a subpackage `__init__.py` (e.g., `package.submodule`).
+
+Every entity defined in `.agent.yml` (including re-exports) must be available from at least one facade level.
+
+The contract does not currently distinguish primary from secondary facade. Both are valid facade exposure. The planning agent must verify that each entity is importable from the declared facade location.
+
+---
+
 ## Meaning of the DSL
 
 The DSL defines:
@@ -214,7 +330,8 @@ The DSL defines:
 - required API shape,
 - required implementation locations,
 - behavioral meaning from descriptions,
-- external contract dependencies.
+- external contract dependencies,
+- re-exported types.
 
 The DSL does **not** automatically define:
 - internal module decomposition,
@@ -237,7 +354,8 @@ The contract implies the following:
 4. Internal decomposition is allowed.
 5. Internal decomposition must not erase or distort the contract.
 6. Imported contract types define external dependencies.
-7. Package boundaries are user-defined and must be preserved.
+7. Re-exported types must be available from the facade but carry no implementation obligation.
+8. Package boundaries are user-defined and must be preserved.
 
 ---
 
@@ -249,19 +367,21 @@ A planning agent should use this DSL to answer:
 - What is already implemented?
 - What is missing?
 - What should be added internally to realize the contract?
+- What must be re-exported without implementation?
 - What must be tested to prove contract compliance?
 
 ---
 
 ## Notes for Multi-Entity Contracts
 
-A single `.agent.yml` may describe multiple entities.
+A single `.agent.yml` may describe multiple entities and re-exports.
 
 Those entities may:
 - share a single `dest`,
 - point to different `dest` files,
 - depend on imported contract types,
-- belong to the same facade surface.
+- belong to the same facade surface,
+- have different `kind` values.
 
 This is valid.
 
