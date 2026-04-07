@@ -41,6 +41,9 @@ The implementation agent may decompose the package internally, but must preserve
 A typical file may look like this:
 
 ```yaml
+annotations: |
+    Description of this package or subpackage.
+
 Imports:
   - Type: Object
     From: "identity.yaml"
@@ -69,15 +72,33 @@ functions:
 ```
 
 A single `.agent.yml` may contain:
-- entity blocks (classes),
-- a `functions` section (standalone functions),
-- re-export blocks (pass-through types and modules),
+- file-level `annotations` (optional, describes the module or subpackage as a whole),
 - an `Imports` section (external types and modules used in signatures),
-- a `Libraries` section (external library dependencies with context).
+- a `Libraries` section (external library dependencies with context),
+- re-export blocks (pass-through types and modules),
+- entity blocks (classes),
+- a `functions` section (standalone functions).
 
 ---
 
 ## Top-Level Sections
+
+### `annotations` (file-level)
+Optional. Provides structured metadata about the `.agent.yml` file as a whole.
+
+Example:
+
+```yaml
+annotations: |
+    Description of this package or subpackage.
+    May include design rationale, notes, or caveats.
+```
+
+Semantics:
+- Placed at the very top of `.agent.yml`, before any other sections.
+- Contains free-form text metadata about the module or subpackage.
+- Does **not** define contract obligations.
+- Persists through YAML parsing unlike `#` comments.
 
 ### `Imports`
 Defines external types and modules used in the contract.
