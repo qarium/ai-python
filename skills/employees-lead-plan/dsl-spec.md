@@ -18,8 +18,12 @@ It does not dictate the full internal implementation design.
 
 ## High-Level Model
 
-A package contains a `.agent.yml` file inside the package directory.
-That file defines the package contract.
+A package may contain `.agent.yml` files at different levels of the directory tree.
+
+- **Package root** `.agent.yml` — defines the top-level facade contract.
+- **Subpackage** `.agent.yml` — defines the contract for a subpackage.
+
+Each `.agent.yml` describes the entities and functions implemented at its level.
 
 The package is treated as an isolated unit.
 Its external interaction is defined through the contract.
@@ -40,10 +44,13 @@ A typical file may look like this:
 Imports:
   - Type: Object
     From: "identity.yaml"
+  - Module: helpers
+    From: "some_pkg.utils"
 
 ---
 
-->Object: {}
+"->Object": {}
+"->helpers": {}
 
 Example:
   dest: example.py
@@ -53,23 +60,26 @@ Example:
   methods:
     - "method(name: Object) -> void:None": |
         what is it, logic description
+
+functions:
+  - "compute(x: int) -> result:int":
+      dest: calc.py
+      description: |
+        Computes something.
 ```
 
-A single `.agent.yml` may describe one or more facade-level entities and re-exports.
-
-Entity types:
-- **class** — a class with properties and methods (default kind).
-- **module** — a module imported as a whole, with functions as methods.
-- **function** — a standalone facade-level function.
-
-The kind is implicit unless `kind` is specified explicitly.
+A single `.agent.yml` may contain:
+- entity blocks (classes),
+- a `functions` section (standalone functions),
+- re-export blocks (pass-through types and modules),
+- an `Imports` section (external dependencies).
 
 ---
 
 ## Top-Level Sections
 
 ### `Imports`
-Defines external types used in the contract.
+Defines external types and modules used in the contract.
 
 Example:
 
@@ -79,22 +89,27 @@ Imports:
     From: "identity.yaml"
   - Type: HTTPError
     From: "requests"
+  - Module: url
+    From: "some_pkg.utils"
 ```
 
 Semantics:
-- `Type` is the external type name.
-- `From` is the source:
-  - a `.yaml`/`.agent.yml` path for DSL contract dependencies (relative to working directory),
-  - a Python package name for external library types (e.g., `"requests"`).
+- **`Type` import**: a type used in signatures but not locally defined.
+  - `Type` is the external type name.
+  - `From` is the source:
+    - a `.yaml`/`.agent.yml` path for DSL contract dependencies (relative to working directory),
+    - a Python package name for external library types (e.g., `"requests"`).
+- **`Module` import**: a subpackage or module whose contract is defined in another `.agent.yml`.
+  - `Module` is the module/subpackage name.
+  - `From` is the Python import path to the parent package (e.g., `"some_pkg.utils"`).
 - Imported types are external dependencies.
-- They should be treated as contract-level references, not redefined locally by default.
-- Importing a type does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
+- Importing a type or module does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
 ### `---` separator
 Optional YAML document separator. May be used to visually separate `Imports` from entity definitions.
 
 ### Entity blocks
-Each top-level entity block defines one facade-level contract entity.
+Each top-level entity block defines one facade-level class.
 
 Example:
 
@@ -105,19 +120,51 @@ Example:
   methods:
 ```
 
-`Example` is the contract entity name.
+`Example` is the contract entity name. It represents a class with properties and methods.
+
+### `functions`
+Defines standalone facade-level functions — not methods of a class.
+
+Example:
+
+```yaml
+functions:
+  - "join(*parts: str) -> joined:str":
+      dest: url.py
+      description: |
+        Joins URL parts into a single URL string.
+  - "add_subdomain_to_url(url: str, subdomain: str) -> url_with_subdomain:str":
+      dest: url.py
+      description: |
+        Adds a subdomain prefix to the URL's netloc.
+```
+
+#### Function entry format
+
+Each entry in `functions` uses the full signature as the key:
+
+```yaml
+"function_name(arg: Type) -> label:ReturnType":
+  dest: path/to/file.py
+  description: |
+    What the function does.
+```
+
+The signature format is the same as method signatures (see below).
+
+`dest` and `description` are mandatory for each function.
 
 ### Re-export blocks
-Each top-level re-export block makes an imported type available on the package facade without defining a contract for it.
+Each top-level re-export block makes an imported type or module available on the package facade without defining a contract for it.
 
 Syntax:
 
 ```yaml
-"->TypeName": {}
+"->Name": {}
 ```
 
 The `->` prefix marks the entity as a re-export.
-The empty `{}` body means no contract obligations — the type is passed through as-is.
+The empty `{}` body means no contract obligations — the type or module is passed through as-is.
 
 Example:
 
@@ -125,17 +172,20 @@ Example:
 Imports:
   - Type: HTTPError
     From: "requests"
+  - Module: url
+    From: "some_pkg.utils"
 
 ---
 
 "->HTTPError": {}
+"->url": {}
 ```
 
 Semantics:
-- The type must be importable from the package facade.
-- No `dest`, `properties`, or `methods` are defined — the implementation simply re-exports the type.
-- The type is not a contract entity — no implementation obligation exists.
-- The planning agent must ensure the type is available from the package `__init__.py`.
+- The type or module must be importable from the package facade.
+- No `dest`, `properties`, `methods`, or `functions` are defined.
+- The type or module is not a contract entity — no implementation obligation exists.
+- The planning agent must ensure the name is available from the package `__init__.py`.
 
 ---
 
@@ -143,32 +193,12 @@ Semantics:
 
 Each entity block may contain:
 
-- `kind` (optional)
 - `dest`
 - `properties` (optional)
 - `methods` (optional)
 
-### `kind`
-`kind` is optional. Default value is `class`.
-
-Values:
-- `class` — the entity is a class. Properties and methods map to class members.
-- `module` — the entity is a module imported as a whole (e.g., `from .utils import url`). Methods map to module-level functions. No `properties` section is expected.
-- `function` — the entity is a standalone facade-level function. A single method entry is expected, where the method name equals the entity name.
-
-Example:
-
-```yaml
-url:
-  kind: module
-  dest: utils/url.py
-  methods:
-    - "join(*parts: str) -> joined:str": |
-        Joins URL parts into a single URL string.
-```
-
 ### `dest`
-`dest` is mandatory for all entity kinds.
+`dest` is mandatory.
 
 Example:
 
@@ -183,7 +213,7 @@ Semantics:
 
 This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
 
-For `kind: module`, `dest` points to the module file itself.
+`dest` is relative to the `.agent.yml` file that defines the entity.
 
 ### `properties`
 Properties describe facade-visible data access of the entity.
@@ -231,11 +261,7 @@ It describes:
 - any semantic requirements that must influence planning and validation.
 
 ### `methods`
-Methods describe facade-visible callable API.
-
-For `kind: class` — these are methods of the class.
-For `kind: module` — these are module-level functions.
-For `kind: function` — this is a single entry matching the entity itself.
+Methods describe facade-visible callable API of a class.
 
 Example:
 
@@ -289,6 +315,31 @@ It must be reflected in:
 
 ---
 
+## Hierarchical Contracts
+
+A package may have `.agent.yml` files at multiple levels.
+
+Example:
+
+```
+some_package/
+├── .agent.yml              ← top-level facade: re-exports, top-level entities
+├── http/
+│   ├── .agent.yml          ← HTTP entities: HTTPClient, HTTPSession, etc.
+│   └── ...
+└── utils/
+    ├── .agent.yml          ← utility functions: join, add_subdomain_to_url
+    └── ...
+```
+
+Rules:
+- Each `.agent.yml` describes entities and functions at its level only.
+- `dest` paths are relative to the `.agent.yml` file location.
+- A parent `.agent.yml` may import and re-export entities from child `.agent.yml` files using `Module` imports and `->` re-exports.
+- A child `.agent.yml` does not need to reference its parent.
+
+---
+
 ## Annotation System
 
 The DSL supports YAML comments as annotations for metadata that does not affect the contract structure.
@@ -303,7 +354,7 @@ When a description is inferred from code rather than extracted from a docstring:
 
 This annotation may appear:
 - at the top of the file, if most descriptions are inferred,
-- inline before a specific property or method.
+- inline before a specific property, method, or function.
 
 Planning agents should treat inferred descriptions as lower-confidence semantic hints and may flag them for user review.
 
@@ -331,7 +382,8 @@ The DSL defines:
 - required implementation locations,
 - behavioral meaning from descriptions,
 - external contract dependencies,
-- re-exported types.
+- re-exported types and modules,
+- standalone functions.
 
 The DSL does **not** automatically define:
 - internal module decomposition,
@@ -354,8 +406,9 @@ The contract implies the following:
 4. Internal decomposition is allowed.
 5. Internal decomposition must not erase or distort the contract.
 6. Imported contract types define external dependencies.
-7. Re-exported types must be available from the facade but carry no implementation obligation.
+7. Re-exported types and modules must be available from the facade but carry no implementation obligation.
 8. Package boundaries are user-defined and must be preserved.
+9. Subpackage contracts are independent — each `.agent.yml` owns its level.
 
 ---
 
@@ -368,20 +421,20 @@ A planning agent should use this DSL to answer:
 - What is missing?
 - What should be added internally to realize the contract?
 - What must be re-exported without implementation?
+- What standalone functions must be implemented?
 - What must be tested to prove contract compliance?
 
 ---
 
 ## Notes for Multi-Entity Contracts
 
-A single `.agent.yml` may describe multiple entities and re-exports.
+A single `.agent.yml` may describe multiple entities, functions, and re-exports.
 
-Those entities may:
+Entities may:
 - share a single `dest`,
 - point to different `dest` files,
 - depend on imported contract types,
-- belong to the same facade surface,
-- have different `kind` values.
+- belong to the same facade surface.
 
 This is valid.
 
