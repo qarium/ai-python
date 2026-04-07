@@ -42,6 +42,8 @@ Imports:
 
 ---
 
+->Object: {}
+
 Example:
   dest: example.py
   properties:

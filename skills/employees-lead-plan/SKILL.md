@@ -72,7 +72,7 @@ You must not plan:
 
 Use the following sources together when available:
 
-1. `.agent.yml`
+1. `.agent.yml` — located **inside the package directory** (e.g., `resq/.agent.yml`). If not found inside the package, also check the project root as a fallback.
 2. current file tree of the package
 3. current package source files
 4. git-oriented change context:
