@@ -1,96 +1,71 @@
-# Output Template for Contract-to-Execution Planning
+# Output Template for DSL-to-Ralphex Planning
 
 Use this exact structure for every planning response.
+This format is compatible with ralphex execution.
 
 If a section cannot be completed because information is unavailable, keep the section and explicitly state what is unavailable.
 
 ---
 
-# LEVEL 1 — OVERVIEW
+# Plan: `<feature-name>`
 
-## Summary
-Provide a concise overview covering:
-- what must be implemented or changed,
+## Goal
+
+Concise statement of what will be implemented or changed.
+Cover:
+- what the package must provide after implementation,
 - the most important contract-to-code gaps,
-- the main execution phases.
+- the overall implementation strategy.
 
-## Contract Surface
-Summarize:
-- facade entities,
-- required `dest` mapping,
-- external contract dependencies,
-- key facade obligations.
+## Context
+
+### Contract Surface
+
+For each contract entity:
+
+**Entity: `<entity name>`**
+- Kind: `<class | function | re-export>`
+- Declared `dest`: `<file path>`
+- Facade obligation: must be importable from `<package>`
+- Extends: `[Type]` declarations (if any)
+- Properties: (list with types and descriptions)
+- Methods: (list with signatures and descriptions)
+- Semantic requirements from descriptions: (key behavioral expectations)
+- Imported dependencies: (types from `Imports` used by this entity)
+- Annotations context: (if present)
+
+Repeat for every contract entity.
 
 ### Re-exports
+
 For each re-export block (`->Name: {}`):
 - Name:
 - Source (corresponding `Imports` entry):
 - Facade obligation: must be importable from `__init__.py`
-- Hierarchy constraint: source must be at a lower filesystem level than the current `CODEMANIFEST.yml`
+- Hierarchy constraint: source must be at a lower filesystem level
 
-## Main Risks / Ambiguities
-List the most important:
-- risks,
-- ambiguities,
-- inferred areas,
-- missing workspace or git context.
+### Usages Context
 
----
+For each usage entry:
+- Name:
+- Description or spec reference:
+- Relevance to implementation:
 
-# LEVEL 2 — DETAILED EXECUTION PLAN
+### External Dependencies
 
-## Contract Extraction
+List all external dependencies the implementation relies on:
+- Libraries from `Imports` (external packages)
+- Pattern/convention references from `Usages`
+- Required tools or frameworks
 
-For each contract entity, use the following shape.
+## Facts
 
-### Entity: `<entity name>`
-**Kind:** `<class | function | re-export | unknown>`
-
-**Facts**
-- Declared `dest`:
-- Facade obligation:
-- Extends: `[Type]` declarations (if any)
-- Annotations context: (if present, use as context hint only)
-- Properties:
-- Methods:
-- Semantic requirements from descriptions:
-- Imported dependencies used by this entity:
-
-**Assumptions**
+List all facts directly stated in the contract or observed in the workspace:
 - ...
-
-**Open Questions**
-- ...
-
-Repeat this subsection for every contract entity.
-
-## Package Boundary
-
-State clearly:
-- what belongs to the public contract surface,
-- what may remain internal,
-- which external dependencies are contract-based,
-- what must not be changed or crossed.
-
-## Gap Analysis
-
-Compare the contract with the current visible package state.
-
-Use these subsections when applicable:
-- Missing contract entities
-- Missing facade exposure
-- Wrong `dest` placement
-- API mismatches
-- Behavioral mismatches
-- Existing code that can be reused
-- Test coverage gaps
-- Missing workspace or git visibility
 
 ## Assumptions
 
-List every non-explicit planning inference.
-
-For each assumption use:
+List every non-explicit planning inference:
 - Assumption:
 - Basis:
 - Criticality:
@@ -98,102 +73,80 @@ For each assumption use:
 
 ## Open Questions
 
-List unresolved questions.
-
-For each question use:
+List unresolved questions:
 - Question:
 - Why it matters:
 - Blocking in strict mode: `<yes | no>`
 
-## Execution Plan
+## Gap Analysis
 
-Break the work into phases.
+Compare the contract with the current visible package state:
+- Missing contract entities:
+- Missing facade exposure:
+- Wrong `dest` placement:
+- API mismatches:
+- Behavioral mismatches:
+- Existing code that can be reused:
+- Test coverage gaps:
+- Missing workspace or git visibility:
 
-For each phase use:
+---
 
-### Phase `<N>`: `<phase title>`
-**Goal**
-- ...
+## Tasks
 
-**Contract entities covered**
-- ...
+### Task 1: `<descriptive title>`
 
-**Tasks**
-- T...
+<Context paragraph: what this task does, which contract entities it covers, relevant imports/usages/annotations. Provide enough context for an AI agent to implement this task independently.>
 
-**Expected outcome**
-- ...
+- [ ] <specific implementation step 1 — e.g., "Create file `path/to/dest.py`">
+- [ ] <specific implementation step 2 — e.g., "Implement class `EntityName` with constructor accepting `(param: Type)`">
+- [ ] <specific implementation step 3 — e.g., "Add `EntityName` to `package/__init__.py`">
+- [ ] <specific implementation step N>
+- [ ] Verify facade availability: `python -c "from package import EntityName"`
 
-**Validation checkpoints**
-- ...
+### Task 2: `<descriptive title>`
 
-**Tests required**
-- Contract tests:
-- Internal tests:
+<Context paragraph>
 
-## Detailed Tasks
+- [ ] <step>
+- [ ] <step>
+- [ ] <step>
 
-For each task use:
+Continue for all tasks.
 
-### Task `<ID>`
-**Goal**
-- ...
+### Task N: Contract tests for `<entity or scope>`
 
-**Target files**
-- ...
+<Context: what contract aspects are being tested>
 
-**Contract entities covered**
-- ...
+- [ ] Create test file `tests/test_<entity>.py`
+- [ ] Test facade availability: `from package import Entity`
+- [ ] Test API shape: verify properties and methods exist with correct signatures
+- [ ] Test positive scenario: `<specific behavior from description>`
+- [ ] Test negative scenario: `<specific error case>`
+- [ ] Test edge case: `<specific boundary condition>`
+- [ ] Run validation: `pytest tests/test_<entity>.py -v`
 
-**Allowed internal additions**
-- ...
+---
 
-**Implementation steps**
-1. ...
-2. ...
-3. ...
+## Validation Commands
 
-**Result checks**
-- ...
+- `<command>`: <what it verifies>
+- `<command>`: <what it verifies>
+- `pytest tests/ -x`: Run all tests
+- `python -c "from package import Entity1, Entity2"`: Verify all facade entities are importable
 
-**Tests**
-- Contract tests:
-  - Facade availability:
-  - API shape:
-  - Behavior:
-  - Positive scenarios:
-  - Negative scenarios:
-  - Edge cases:
-- Internal tests:
-  - ...
-
-Every task must be specific.
-Avoid vague tasks that do not identify files, intent, checks, and test obligations.
-
-## Validation Plan
-
-Explain how to verify final contract compliance.
-
-Cover at least:
-- correct implementation location in each `dest`,
-- facade availability of each contract entity,
-- API compatibility,
-- semantic and behavioral alignment,
-- imported contract dependency alignment,
-- contract test coverage,
-- internal test coverage where relevant.
+---
 
 ## Done Criteria
 
-Use a checklist.
-
-- [ ] Every contract entity is implemented
 - [ ] Every contract entity is implemented in the correct `dest`
 - [ ] Every contract entity is available from the package facade
 - [ ] Properties and methods match the declared API
 - [ ] Descriptions are reflected in behavior
 - [ ] Contract dependencies are respected
+- [ ] Re-exports are available from facade
 - [ ] Contract tests cover facade, API, and behavior
 - [ ] Internal tests exist where internal decomposition requires them
 - [ ] No package boundary has been expanded
+- [ ] All validation commands pass
 - [ ] Assumptions and open questions are explicitly documented

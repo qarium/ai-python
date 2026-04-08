@@ -217,3 +217,48 @@ This file intentionally avoids language-specific rules such as:
 Those should be defined in an additional language-specific conventions file when needed.
 
 This general convention layer defines **structural and traceability expectations**, not language syntax policy.
+
+---
+
+## Ralphex Task Design Conventions
+
+### Task atomicity
+Each task in the plan must be **atomic** — completable by an AI agent in a single Claude Code session without requiring context from other tasks.
+
+Rules:
+- One task covers one logical unit of work (one entity skeleton, one method implementation, one test suite).
+- Tasks sharing the same `dest` file may be grouped if they are small enough for one session.
+- A task must not require the AI to read other tasks for implementation context.
+- Each task restates relevant imports, usages, and annotations needed for implementation.
+
+### Task ordering
+Tasks must be ordered for sequential execution:
+1. Infrastructure (package structure, `__init__.py`, re-exports)
+2. Entity skeletons (classes and functions in correct `dest` files)
+3. Property implementations
+4. Method implementations (one per method or grouped by entity)
+5. Interface extensions (`[Type]` extends)
+6. Contract tests
+7. Integration/edge case tests
+
+### Checkbox granularity
+Each `- [ ]` checkbox in a task must be:
+- A specific, verifiable action (e.g., "Create file `service.py`", "Implement method `load()` returning `list[Any]`")
+- Verifiable by running a command or checking file existence
+- Not a vague goal (e.g., avoid "Implement the service" without specifics)
+
+### Validation command placement
+- Each task must include at least one inline validation step (a `- [ ]` checkbox with a verification command).
+- The `## Validation Commands` section at the plan level lists all global validation commands.
+- Task-level validation commands verify the specific task outcome.
+- Plan-level validation commands verify overall contract compliance.
+
+### Self-contained task context
+Each task must include:
+- What contract entities it covers
+- What `dest` files are involved
+- Relevant imports and usages
+- Behavioral requirements from descriptions
+- Annotations as context hints
+
+This ensures ralphex can send any single task to Claude Code and the AI has sufficient context to implement it correctly.
