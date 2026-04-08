@@ -69,7 +69,7 @@ Analyze all facade entities to detect external dependencies.
 #### Import detection
 For each type used in signatures that is not locally defined:
 - Determine whether it comes from another `CODEMANIFEST` contract (e.g., a type defined in a sibling package within the same project).
-- Record each as an `Imports` entry with `Type` or `Module` kind.
+- Record each as an `Imports` entry with `Type` kind.
 - **External library types** (e.g., `requests.Response`, `pydantic.BaseModel`) must **not** be recorded in `Imports`. They are recorded in `Usages` instead.
 
 #### Library and external type detection
@@ -211,12 +211,12 @@ Determine which subpackages need their own `CODEMANIFEST` files.
 Rules:
 - A subpackage needs its own `CODEMANIFEST` if it contains facade entities or standalone functions.
 - The subpackage `CODEMANIFEST` describes entities and functions at its level only.
-- The parent `CODEMANIFEST` uses `Module` imports and `->` re-exports to make the subpackage available on the top-level facade.
+- The parent `CODEMANIFEST` uses `->` re-exports to make subpackage entities available on the top-level facade.
 
 Example decomposition:
 ```
 some_package/
-├── CODEMANIFEST              ← entities + Module import for url + re-export
+├── CODEMANIFEST              ← entities + re-exports
 ├── http/
 │   ├── CODEMANIFEST          ← HTTP entities (if applicable)
 │   └── ...
@@ -227,11 +227,7 @@ some_package/
 
 Parent `CODEMANIFEST`:
 ```yaml
-Imports:
-  - Module: url
-    From: "some_package.utils"
-
-"->url": {}
+"->join": {}
 ```
 
 Subpackage `CODEMANIFEST` (`some_package/utils/CODEMANIFEST`):
@@ -248,8 +244,8 @@ Assemble each `CODEMANIFEST` file with the following structure (in order):
 
 ```yaml
 Imports:
-  - Module: submodule
-    From: "some_package.submodule"
+  - Type: SomeType
+    From: "other_package/CODEMANIFEST"
 
 Usages:
   - requests: .specs/requests.md
@@ -265,7 +261,6 @@ Annotations: |
 ---
 
 "->ExternalType": {}
-"->submodule": {}
 
 "EntityName()":
   dest: path/to/file.py
@@ -334,12 +329,11 @@ After assembling all `CODEMANIFEST` files and before writing:
 | Category | Name | Source |
 |----------|------|--------|
 | Import (Type) | User | identity.yaml |
-| Import (Module) | url | some_package.utils |
 | Usage (external type) | HTTPError | requests |
 | Usage (library) | requests | pyproject.toml |
 | Usage (pattern) | pydantic | .specs/pydantic.md |
 | Re-export | HTTPError | requests (from Usages) |
-| Re-export | url | some_package.utils (from Imports) |
+| Re-export | join | some_package.utils (discovered from child CODEMANIFEST) |
 
 4. List any **ambiguities** or **decisions** made during extraction:
    - Entities excluded from the facade (with reason).

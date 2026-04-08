@@ -73,7 +73,7 @@ When ralphex executes a task, the AI agent follows this protocol:
 - The contract describes what must be accessible from the package facade.
 - The contract is the required public surface of the package.
 - The package is treated as an isolated part with external interaction only through contracts.
-- A parent `CODEMANIFEST` may import and re-export entities from child `CODEMANIFEST` files via `Module` imports and `->` re-exports.
+- A parent `CODEMANIFEST` may re-export entities from child `CODEMANIFEST` files via `->` re-exports.
 
 ### Entity model
 - Contract entities may be classes or standalone functions.
@@ -178,7 +178,6 @@ The DSL compiles into plan tasks as follows:
 | DSL Element | Plan Output |
 |---|---|
 | `Type Import` | Context section — internal type from another `CODEMANIFEST`, must be available in signatures |
-| `Module Import` | Context section — subpackage with own contract, may require infrastructure setup for re-exports |
 | `Usages` | Context section with implementation guidance for the AI agent, including external library types |
 | `Annotations` | Context hints embedded in task descriptions |
 | `->Re-exports` | Task: ensure name importable from package `__init__.py` |
@@ -213,7 +212,7 @@ They define:
 These requirements must appear in the task instructions so the AI implementation agent understands what to build.
 
 ### Imports are internal contract dependencies
-Imports define internal contract dependencies — types and modules from other `CODEMANIFEST` files in the same project.
+Imports define internal contract dependencies — types from other `CODEMANIFEST` files in the same project.
 External library types are described in `Usages`.
 Do not locally redefine imported contract types unless the contract explicitly requires it.
 Include import context in task descriptions.

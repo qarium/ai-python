@@ -47,8 +47,6 @@ A typical file may look like this:
 Imports:
   - Type: Object
     From: "identity.yaml"
-  - Module: helpers
-    From: "some_pkg.utils"
 
 Usages:
   - pydantic: .specs/pydantic.md
@@ -87,10 +85,10 @@ Annotations: |
 ```
 
 A single `CODEMANIFEST` may contain:
-- an `Imports` section (internal types and modules from other `CODEMANIFEST` files in the same project),
+- an `Imports` section (internal types from other `CODEMANIFEST` files in the same project),
 - a `Usages` section (external dependencies, external types, patterns, conventions),
 - file-level `Annotations` (optional, describes the module or subpackage as a whole),
-- re-export blocks (pass-through types and modules),
+- re-export blocks (pass-through types),
 - entity blocks (classes with properties and/or methods),
 - standalone function blocks (top-level blocks without properties or methods).
 
@@ -99,7 +97,7 @@ A single `CODEMANIFEST` may contain:
 ## Top-Level Sections
 
 ### `Imports`
-Defines **internal** types and modules used in the contract — imports from other `CODEMANIFEST` files within the same project.
+Defines **internal** types used in the contract — imports from other `CODEMANIFEST` files within the same project.
 
 External library types (e.g., `requests.HTTPError`) must **not** appear here. They are described in `Usages`.
 
@@ -109,20 +107,15 @@ Example:
 Imports:
   - Type: Object
     From: "identity.yaml"
-  - Module: url
-    From: "some_pkg.utils"
 ```
 
 Semantics:
 - **`Type` import**: a type from another `CODEMANIFEST` used in signatures but not locally defined.
   - `Type` is the type name as defined in the source `CODEMANIFEST`.
   - `From` is the `CODEMANIFEST` path (relative to the working directory) where the type is defined.
-- **`Module` import**: a subpackage or module whose contract is defined in another `CODEMANIFEST`.
-  - `Module` is the module/subpackage name.
-  - `From` is the Python import path to the parent package (e.g., `"some_pkg.utils"`).
 - Imported types are **internal contract dependencies** — they come from other packages within the same project.
 - External library types are described in `Usages`, not in `Imports`.
-- Importing a type or module does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
+- Importing a type does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
 ### `Usages`
 Defines external dependencies, external types, patterns, and conventions — anything that explains how to use an external resource in the package.
@@ -155,7 +148,7 @@ Semantics:
   - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST` file location),
   - a **multiline text** annotation describing the usage directly.
 - `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
-- `Usages` is separate from `Imports`. `Imports` declares internal types and modules from other `CODEMANIFEST` files. `Usages` describes external resources and external types the implementation depends on.
+- `Usages` is separate from `Imports`. `Imports` declares internal types from other `CODEMANIFEST` files. `Usages` describes external resources and external types the implementation depends on.
 - External library types referenced in `Usages` may appear in method signatures, property types, or re-exports. The implementation agent reads `Usages` to understand what external types are available and how to import them.
 
 ### `Annotations` (file-level)
@@ -179,7 +172,7 @@ Semantics:
 Optional YAML document separator. Used to visually separate `Imports`, `Usages`, and `Annotations` from entity definitions.
 
 ### Re-export blocks
-Each top-level re-export block makes an imported type or module available on the package facade without defining a contract for it.
+Each top-level re-export block makes an imported type available on the package facade without defining a contract for it.
 
 Syntax:
 
@@ -188,15 +181,11 @@ Syntax:
 ```
 
 The `->` prefix marks the entity as a re-export.
-The empty `{}` body means no contract obligations — the type or module is passed through as-is.
+The empty `{}` body means no contract obligations — the type is passed through as-is.
 
 Example:
 
 ```yaml
-Imports:
-  - Module: url
-    From: "some_pkg.utils"
-
 Usages:
   - requests: |
        External HTTP library. Provides `HTTPError` for error handling.
@@ -204,13 +193,12 @@ Usages:
 ---
 
 "->HTTPError": {}
-"->url": {}
 ```
 
 Semantics:
-- The type or module must be importable from the package facade.
+- The type must be importable from the package facade.
 - No `dest`, `properties`, or `methods` are defined.
-- The type or module is not a contract entity — no implementation obligation exists.
+- The type is not a contract entity — no implementation obligation exists.
 - The planning agent must ensure the name is available from the package `__init__.py`.
 - Re-exports can reference names from `Imports` (internal) or `Usages` (external). The source of the re-exported name determines how it is imported in the implementation.
 - Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
@@ -498,7 +486,7 @@ some_package/
 Rules:
 - Each `CODEMANIFEST` describes entities and functions at its level only.
 - `dest` paths are relative to the `CODEMANIFEST` file location.
-- A parent `CODEMANIFEST` may import and re-export entities from child `CODEMANIFEST` files using `Module` imports and `->` re-exports.
+- A parent `CODEMANIFEST` may re-export entities from child `CODEMANIFEST` files using `->` re-exports.
 - A child `CODEMANIFEST` does not need to reference its parent.
 
 ---
@@ -526,7 +514,7 @@ The DSL defines:
 - behavioral meaning from descriptions,
 - internal contract dependencies (via `Imports`),
 - external dependencies and types (via `Usages`),
-- re-exported types and modules,
+- re-exported types,
 - standalone functions (as top-level blocks without properties/methods),
 - interface mutations via `Type::` syntax.
 
@@ -551,7 +539,7 @@ The contract implies the following:
 4. Internal decomposition is allowed.
 5. Internal decomposition must not erase or distort the contract.
 6. Imported contract types define internal dependencies (from other `CODEMANIFEST` files in the same project). External dependencies are described in `Usages`.
-7. Re-exported types and modules must be available from the facade but carry no implementation obligation.
+7. Re-exported types must be available from the facade but carry no implementation obligation.
 8. Re-exports can only embed entities from lower filesystem levels.
 9. Package boundaries are user-defined and must be preserved.
 10. Subpackage contracts are independent — each `CODEMANIFEST` owns its level.
