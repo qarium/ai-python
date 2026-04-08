@@ -13,11 +13,11 @@ Imports:
 
 ---
 
-UserService:
+"UserService()":
   dest: service.py
   methods:
-    - "create_user(name: str) -> result:User": |
-        Creates a new user and validates input before creating the entity.
+    "create_user(name: str) -> result:User": |
+      Creates a new user and validates input before creating the entity.
 ```
 
 ---

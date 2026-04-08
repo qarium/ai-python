@@ -21,6 +21,13 @@ Summarize:
 - external contract dependencies,
 - key facade obligations.
 
+### Re-exports
+For each re-export block (`->Name: {}`):
+- Name:
+- Source (corresponding `Imports` entry):
+- Facade obligation: must be importable from `__init__.py`
+- Hierarchy constraint: source must be at a lower filesystem level than the current `CODEMANIFEST.yml`
+
 ## Main Risks / Ambiguities
 List the most important:
 - risks,
@@ -37,11 +44,13 @@ List the most important:
 For each contract entity, use the following shape.
 
 ### Entity: `<entity name>`
-**Kind:** `<class | function | object | other | unknown>`
+**Kind:** `<class | function | re-export | unknown>`
 
 **Facts**
 - Declared `dest`:
 - Facade obligation:
+- Extends: `[Type]` declarations (if any)
+- Annotations context: (if present, use as context hint only)
 - Properties:
 - Methods:
 - Semantic requirements from descriptions:

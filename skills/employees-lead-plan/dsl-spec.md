@@ -1,4 +1,4 @@
-# DSL Specification for `.agent.yml`
+# DSL Specification for `CODEMANIFEST.yml`
 
 ## Purpose
 
@@ -14,16 +14,19 @@ It describes:
 The DSL defines **what must exist** and **what it must mean**.
 It does not dictate the full internal implementation design.
 
+Signatures may be described in free form, close to the target programming language,
+to help AI models navigate the contract more effectively.
+
 ---
 
 ## High-Level Model
 
-A package may contain `.agent.yml` files at different levels of the directory tree.
+A package may contain `CODEMANIFEST.yml` files at different levels of the directory tree.
 
-- **Package root** `.agent.yml` — defines the top-level facade contract.
-- **Subpackage** `.agent.yml` — defines the contract for a subpackage.
+- **Package root** `CODEMANIFEST.yml` — defines the top-level facade contract.
+- **Subpackage** `CODEMANIFEST.yml` — defines the contract for a subpackage.
 
-Each `.agent.yml` describes the entities and functions implemented at its level.
+Each `CODEMANIFEST.yml` describes the entities and functions implemented at its level.
 
 The package is treated as an isolated unit.
 Its external interaction is defined through the contract.
@@ -41,67 +44,62 @@ The implementation agent may decompose the package internally, but must preserve
 A typical file may look like this:
 
 ```yaml
-annotations: |
-    Description of this package or subpackage.
-
 Imports:
   - Type: Object
     From: "identity.yaml"
   - Module: helpers
     From: "some_pkg.utils"
 
+Usages:
+  - importlib: .specs/importlib.md
+  - structures: .specs/structures.md
+  - pattern: |
+       Annotation describing how to use the `pattern` alias.
+
+Annotations: |
+  Description of this package or subpackage.
+
 ---
 
 "->Object": {}
 "->helpers": {}
 
-Example:
-  dest: example.py
-  properties:
-    - "Name -> name:Type": |
-        what is it
+"Loader(path: str, cls_prefix: str = 'Test', method_prefix: str = 'test_')":
+  dest: loader.py
+  annotations: |
+    Description of the Loader entity.
   methods:
-    - "method(name: Object) -> void:None": |
-        what is it, logic description
+    "load() -> cls_instances:list[Any]": |
+      Returns a list of loaded class instances.
 
-functions:
-  - "compute(x: int) -> result:int":
-      dest: calc.py
-      description: |
-        Computes something.
+"[Object][structures.Data]SomeClass()":
+  dest: some.py
+  annotations: |
+    Class with data model representation.
+  properties:
+    name: |
+      `str` -> string with the name.
+
+"fibonacci(n: int) -> number:int":
+  dest: tools.py
+  annotations: |
+    Fibonacci number computation.
 ```
 
-A single `.agent.yml` may contain:
-- file-level `annotations` (optional, describes the module or subpackage as a whole),
+A single `CODEMANIFEST.yml` may contain:
 - an `Imports` section (external types and modules used in signatures),
-- a `Libraries` section (external library dependencies with context),
+- a `Usages` section (external dependencies, patterns, conventions),
+- file-level `Annotations` (optional, describes the module or subpackage as a whole),
 - re-export blocks (pass-through types and modules),
-- entity blocks (classes),
-- a `functions` section (standalone functions).
+- entity blocks (classes with properties and/or methods),
+- standalone function blocks (top-level blocks without properties or methods).
 
 ---
 
 ## Top-Level Sections
 
-### `annotations` (file-level)
-Optional. Provides structured metadata about the `.agent.yml` file as a whole.
-
-Example:
-
-```yaml
-annotations: |
-    Description of this package or subpackage.
-    May include design rationale, notes, or caveats.
-```
-
-Semantics:
-- Placed at the very top of `.agent.yml`, before any other sections.
-- Contains free-form text metadata about the module or subpackage.
-- Does **not** define contract obligations.
-- Persists through YAML parsing unlike `#` comments.
-
 ### `Imports`
-Defines external types and modules used in the contract.
+Defines external types and modules used in the contract — literally imports from other `CODEMANIFEST.yml` files or external packages.
 
 Example:
 
@@ -119,86 +117,59 @@ Semantics:
 - **`Type` import**: a type used in signatures but not locally defined.
   - `Type` is the external type name.
   - `From` is the source:
-    - a `.yaml`/`.agent.yml` path for DSL contract dependencies (relative to working directory),
+    - a `CODEMANIFEST.yml` path for DSL contract dependencies (relative to working directory),
     - a Python package name for external library types (e.g., `"requests"`).
-- **`Module` import**: a subpackage or module whose contract is defined in another `.agent.yml`.
+- **`Module` import**: a subpackage or module whose contract is defined in another `CODEMANIFEST.yml`.
   - `Module` is the module/subpackage name.
   - `From` is the Python import path to the parent package (e.g., `"some_pkg.utils"`).
 - Imported types are external dependencies.
 - Importing a type or module does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
-### `Libraries`
-Defines external library dependencies — packages that the implementation relies on but are not locally defined.
+### `Usages`
+Defines external dependencies, patterns, and conventions — anything that explains how to use an external resource in the package.
+
+This is broader than just libraries. A usage entry can be:
+- a library spec (how to install, configure, and use its API),
+- a convention or pattern (how to follow a specific design approach),
+- any usage guidance relevant to the implementation.
 
 Example:
 
 ```yaml
-Libraries:
-  - importlib:
-      spec: .specs/importlib.md
-      annotations: |
-        Библиотека для загрузки python объектов в runtime.
-  - requests:
-      annotations: |
-        HTTP-клиент для отправки запросов.
+Usages:
+  - importlib: .specs/importlib.md
+  - structures: .specs/structures.md
+  - pattern: |
+       Annotation describing how to use the `pattern` alias.
 ```
 
 Semantics:
-- Each entry key is the **library name** (Python package name).
-- `spec` is **optional** — a path to a file with detailed documentation, usage examples, or notes about the library. Relative to the `.agent.yml` file location.
-- `annotations` is **optional** — a free-form text description of what the library is and how it is used in the package.
-- At least one of `spec` or `annotations` should be present for each library entry.
-- `Libraries` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
-- `Libraries` is separate from `Imports`. `Imports` declares types and modules used in contract signatures. `Libraries` describes external packages the implementation depends on.
+- Each entry key is the **usage name** (library name, pattern name, convention name).
+- The value is either:
+  - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST.yml` file location),
+  - a **multiline text** annotation describing the usage directly.
+- `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
+- `Usages` is separate from `Imports`. `Imports` declares types and modules used in contract signatures. `Usages` describes external resources the implementation depends on.
+
+### `Annotations` (file-level)
+Optional. Provides structured metadata about the `CODEMANIFEST.yml` file as a whole.
+
+Example:
+
+```yaml
+Annotations: |
+  Description of this package or subpackage.
+  May include design rationale, notes, or caveats.
+```
+
+Semantics:
+- Placed after `Usages` and before the `---` separator.
+- Contains free-form text metadata about the module or subpackage.
+- Does **not** define contract obligations.
+- Persists through YAML parsing unlike `#` comments.
 
 ### `---` separator
-Optional YAML document separator. May be used to visually separate `Imports` and `Libraries` from entity definitions.
-
-### Entity blocks
-Each top-level entity block defines one facade-level class.
-
-Example:
-
-```yaml
-Example:
-  dest: example.py
-  properties:
-  methods:
-```
-
-`Example` is the contract entity name. It represents a class with properties and methods.
-
-### `functions`
-Defines standalone facade-level functions — not methods of a class.
-
-Example:
-
-```yaml
-functions:
-  - "join(*parts: str) -> joined:str":
-      dest: url.py
-      description: |
-        Joins URL parts into a single URL string.
-  - "add_subdomain_to_url(url: str, subdomain: str) -> url_with_subdomain:str":
-      dest: url.py
-      description: |
-        Adds a subdomain prefix to the URL's netloc.
-```
-
-#### Function entry format
-
-Each entry in `functions` uses the full signature as the key:
-
-```yaml
-"function_name(arg: Type) -> label:ReturnType":
-  dest: path/to/file.py
-  description: |
-    What the function does.
-```
-
-The signature format is the same as method signatures (see below).
-
-`dest` and `description` are mandatory for each function.
+Optional YAML document separator. Used to visually separate `Imports`, `Usages`, and `Annotations` from entity definitions.
 
 ### Re-export blocks
 Each top-level re-export block makes an imported type or module available on the package facade without defining a contract for it.
@@ -229,9 +200,110 @@ Imports:
 
 Semantics:
 - The type or module must be importable from the package facade.
-- No `dest`, `properties`, `methods`, or `functions` are defined.
+- No `dest`, `properties`, or `methods` are defined.
 - The type or module is not a contract entity — no implementation obligation exists.
 - The planning agent must ensure the name is available from the package `__init__.py`.
+- Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST.yml`.
+
+### Entity blocks
+Each top-level entity block defines one facade-level class.
+
+The entity name can be:
+- a **simple class name** — for classes with no constructor parameters or when constructor details are not part of the contract,
+- a **constructor signature** — the full signature including parameters, types, and default values.
+
+Example (simple name):
+
+```yaml
+Example:
+  dest: example.py
+  properties:
+  methods:
+```
+
+Example (constructor signature):
+
+```yaml
+"Loader(path: str, cls_prefix: str = 'Test', method_prefix: str = 'test_')":
+  dest: loader.py
+  annotations: |
+    Recursively loads classes from the specified directory and creates instances
+    with method names by prefix.
+  methods:
+    "load() -> cls_instances:list[Any]": |
+      Returns a list of loaded class instances.
+```
+
+`Loader` or `Example` is the contract entity name. It represents a class with properties and methods.
+
+Constructor parameters in the entity name serve as documentation for the implementation agent. They describe how the class should be instantiated but are not enforced as individual contract obligations — the entity as a whole is the contract unit.
+
+### Standalone function blocks
+A top-level entity block without `properties` or `methods` represents a standalone function or functor.
+
+The entity name is the full function signature:
+
+```yaml
+"fibonacci(n: int) -> number:int":
+  dest: tools.py
+  annotations: |
+    Fibonacci number computation.
+```
+
+Whether this is implemented as a function or functor depends on the target language characteristics.
+
+`dest` is mandatory. `annotations` is optional.
+
+---
+
+## Extends Syntax `[Type]`
+
+An entity block may use the extends syntax to indicate that the entity extends (implements, inherits from) existing types or usage-defined types.
+
+Syntax:
+
+```yaml
+"[Type1][Type2][usage.Alias]ClassName()":
+  dest: file.py
+  properties:
+  methods:
+```
+
+Each `[...]` bracket before the class name declares an extension:
+- **`[ImportedType]`** — extends a type from `Imports`. The type must be declared in the `Imports` section.
+- **`[usage.Name]`** — extends a type defined in a usage spec. The usage spec already explains what `Name` is, so the contract can extend it.
+
+Example:
+
+```yaml
+Imports:
+  - Type: Object
+    From: "kotlin"
+
+Usages:
+  - structures: .specs/structures.md
+
+---
+
+"[Object][structures.Data]SomeClass()":
+  dest: some.py
+  annotations: |
+    Class with data model representation.
+  properties:
+    name: |
+      `str` -> string with the name.
+```
+
+Here:
+- `[Object]` — extends the `Object` type imported from `Imports`,
+- `[structures.Data]` — extends the `Data` type described in the `structures` usage spec,
+- `SomeClass()` — the class name with optional constructor signature.
+
+Semantics:
+- The syntax `[Type]` means "extends an existing interface" — how the extension is implemented is up to the implementation agent.
+- Multiple `[Type]` blocks indicate multiple extensions (e.g., multiple inheritance, interface implementation).
+- The class name after the brackets may include a constructor signature: `[Type]ClassName(arg: Type)`.
+- Extends blocks do not require a corresponding `Imports` entry for usage-defined types — the usage spec already defines them.
 
 ---
 
@@ -239,7 +311,7 @@ Semantics:
 
 Each entity block may contain:
 
-- `dest`
+- `dest` (mandatory)
 - `annotations` (optional)
 - `properties` (optional)
 - `methods` (optional)
@@ -260,7 +332,7 @@ Semantics:
 
 This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
 
-`dest` is relative to the `.agent.yml` file that defines the entity.
+`dest` is relative to the `CODEMANIFEST.yml` file that defines the entity.
 
 ### `annotations`
 `annotations` is optional. Provides structured metadata about the entity that persists through YAML parsing.
@@ -268,11 +340,11 @@ This means `dest` defines a **location obligation** and the contract defines a *
 Example:
 
 ```yaml
-Object:
-  dest: file.py
+"Loader(path: str)":
+  dest: loader.py
   annotations: |
-      Description of the entity.
-      May include notes about source, design decisions, or caveats.
+    Description of the entity.
+    May include notes about source, design decisions, or caveats.
 ```
 
 Semantics:
@@ -282,46 +354,41 @@ Semantics:
 - May describe: source of the entity, extraction notes, design rationale, known limitations.
 - Planning agents should use annotations as context hints but must not treat annotation text as contract requirements.
 
-Annotations may also appear on individual function entries:
-
-```yaml
-functions:
-  - "join(*parts: str) -> joined:str":
-      dest: url.py
-      annotations: |
-          Extracted from url.py — signature verified.
-      description: |
-          Joins URL parts into a single URL string.
-```
-
 ### `properties`
 Properties describe facade-visible data access of the entity.
+
+Properties use a simplified mapping format — the key is the property name, the value is a description containing the type information inline.
 
 Example:
 
 ```yaml
 properties:
-  - "Name -> name:Type": |
-      what is it
+  name: |
+    `str` -> string with the name.
+  items: |
+    `list[Item]` -> list of items in the collection.
 ```
 
 Properties section may be omitted when the entity has no facade-visible properties.
 
-#### Property signature format
+#### Property format
 
 ```text
-PropertyName -> label:Type
+PropertyName: |
+  `Type` -> description text
 ```
 
 Semantics:
-- `PropertyName` = actual property name in code
-- `label` = semantic hint used to clarify intent
-- `Type` = actual property type
+- `PropertyName` = actual property name in code (left side of the mapping key)
+- The value is a multiline text containing:
+  - the type in backticks,
+  - a `->` separator,
+  - a human-readable description
 
 Important:
-- the left side is the real code-facing property name,
-- the label is explanatory,
-- the label does not replace the actual property name.
+- the key is the real code-facing property name,
+- the type and description are in the value, not structured into the key,
+- this format is language-agnostic and easy to read.
 
 #### What counts as a property
 
@@ -334,20 +401,26 @@ From the facade perspective these are indistinguishable — a consumer cannot te
 #### Property description
 The multiline text under the property is mandatory.
 It describes:
+- the type of the property (in backticks),
 - what the property represents,
 - constraints,
-- behavior expectations where relevant,
-- any semantic requirements that must influence planning and validation.
+- behavior expectations where relevant.
 
 ### `methods`
 Methods describe facade-visible callable API of a class.
+
+Methods use a mapping format — the key is the full method signature, the value is the description.
 
 Example:
 
 ```yaml
 methods:
-  - "method(name: Object) -> void:None": |
-      what is it, logic description
+  "load() -> cls_instances:list[Any]": |
+    Returns a list of loaded class instances with the specified prefix
+    created using the pattern `Class(method_name)`, where `method_name`
+    is each method in the class matching `method_prefix`.
+  "get_address(order: Order) -> delivery:Address": |
+    Returns the delivery address for the given order.
 ```
 
 Methods section may be omitted when the entity has no facade-visible callable API (rare but valid).
@@ -396,104 +469,26 @@ It must be reflected in:
 
 ## Hierarchical Contracts
 
-A package may have `.agent.yml` files at multiple levels.
+A package may have `CODEMANIFEST.yml` files at multiple levels.
 
 Example:
 
 ```
 some_package/
-├── .agent.yml              ← top-level facade: re-exports, top-level entities
+├── CODEMANIFEST.yml              ← top-level facade: re-exports, top-level entities
 ├── http/
-│   ├── .agent.yml          ← HTTP entities: HTTPClient, HTTPSession, etc.
+│   ├── CODEMANIFEST.yml          ← HTTP entities: HTTPClient, HTTPSession, etc.
 │   └── ...
 └── utils/
-    ├── .agent.yml          ← utility functions: join, add_subdomain_to_url
+    ├── CODEMANIFEST.yml          ← utility functions: join, add_subdomain_to_url
     └── ...
 ```
 
 Rules:
-- Each `.agent.yml` describes entities and functions at its level only.
-- `dest` paths are relative to the `.agent.yml` file location.
-- A parent `.agent.yml` may import and re-export entities from child `.agent.yml` files using `Module` imports and `->` re-exports.
-- A child `.agent.yml` does not need to reference its parent.
-
----
-
-## Annotation System
-
-The DSL supports two levels of annotation.
-
-### Structured annotations (`annotations` field)
-
-Structured annotations may appear at three levels: file-level, entity-level, and function-level.
-They persist through YAML parsing and are accessible programmatically.
-
-#### File-level annotations
-
-Placed at the top of `.agent.yml`, before entity blocks. Describes the module or subpackage as a whole.
-
-```yaml
-annotations: |
-    Module-level description or notes about this subpackage.
-
-Object:
-  dest: file.py
-  properties:
-  methods:
-```
-
-#### Entity-level annotations
-
-Placed inside an entity block.
-
-```yaml
-Object:
-  dest: file.py
-  annotations: |
-      Extracted from external library — signature verified.
-  properties:
-  methods:
-```
-
-#### Function-level annotations
-
-Placed inside a function entry.
-
-```yaml
-functions:
-  - "join(*parts: str) -> joined:str":
-      dest: url.py
-      annotations: |
-          Extracted from url.py — signature verified.
-      description: |
-          Joins URL parts into a single URL string.
-```
-
-### Inline annotations (YAML comments)
-
-YAML comments (`#`) are used for lightweight, non-structural annotations that do not survive YAML parsing.
-
-When a description is inferred from code rather than extracted from a docstring:
-
-```yaml
-# NOTE: description inferred — review for accuracy
-```
-
-This annotation may appear:
-- at the top of the file, if most descriptions are inferred,
-- inline before a specific property, method, or function.
-
-Planning agents should treat inferred descriptions as lower-confidence semantic hints and may flag them for user review.
-
-### When to use which
-
-| Use case | `annotations` field | YAML comment |
-|---|---|---|
-| Source or extraction note | yes | no |
-| Design rationale | yes | no |
-| Inferred description warning | no | yes |
-| Quick inline note | no | yes |
-| Machine-readable metadata | yes | no |
+- Each `CODEMANIFEST.yml` describes entities and functions at its level only.
+- `dest` paths are relative to the `CODEMANIFEST.yml` file location.
+- A parent `CODEMANIFEST.yml` may import and re-export entities from child `CODEMANIFEST.yml` files using `Module` imports and `->` re-exports.
+- A child `CODEMANIFEST.yml` does not need to reference its parent.
 
 ---
 
@@ -505,7 +500,7 @@ Facade exposure may happen at different levels:
 - **primary facade** — available from the top-level `__init__.py`,
 - **secondary facade** — available from a subpackage `__init__.py` (e.g., `package.submodule`).
 
-Every entity defined in `.agent.yml` (including re-exports) must be available from at least one facade level.
+Every entity defined in `CODEMANIFEST.yml` (including re-exports) must be available from at least one facade level.
 
 The contract does not currently distinguish primary from secondary facade. Both are valid facade exposure. The planning agent must verify that each entity is importable from the declared facade location.
 
@@ -520,7 +515,8 @@ The DSL defines:
 - behavioral meaning from descriptions,
 - external contract dependencies,
 - re-exported types and modules,
-- standalone functions.
+- standalone functions (as top-level blocks without properties/methods),
+- interface extensions via `[Type]` syntax.
 
 The DSL does **not** automatically define:
 - internal module decomposition,
@@ -544,8 +540,11 @@ The contract implies the following:
 5. Internal decomposition must not erase or distort the contract.
 6. Imported contract types define external dependencies.
 7. Re-exported types and modules must be available from the facade but carry no implementation obligation.
-8. Package boundaries are user-defined and must be preserved.
-9. Subpackage contracts are independent — each `.agent.yml` owns its level.
+8. Re-exports can only embed entities from lower filesystem levels.
+9. Package boundaries are user-defined and must be preserved.
+10. Subpackage contracts are independent — each `CODEMANIFEST.yml` owns its level.
+11. Entity names may contain constructor signatures to document instantiation expectations.
+12. The `[Type]` extends syntax declares interface extension without prescribing implementation.
 
 ---
 
@@ -559,18 +558,20 @@ A planning agent should use this DSL to answer:
 - What should be added internally to realize the contract?
 - What must be re-exported without implementation?
 - What standalone functions must be implemented?
+- What interface extensions are required?
 - What must be tested to prove contract compliance?
 
 ---
 
 ## Notes for Multi-Entity Contracts
 
-A single `.agent.yml` may describe multiple entities, functions, and re-exports.
+A single `CODEMANIFEST.yml` may describe multiple entities, functions, and re-exports.
 
 Entities may:
 - share a single `dest`,
 - point to different `dest` files,
 - depend on imported contract types,
+- extend other types via `[Type]` syntax,
 - belong to the same facade surface.
 
 This is valid.
