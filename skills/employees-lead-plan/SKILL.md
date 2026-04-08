@@ -280,6 +280,16 @@ You must strictly follow the structure defined in `output-template.md`.
 No section may be omitted unless the information is truly unavailable.
 If information is unavailable, state that explicitly inside the relevant section.
 
+### Save plan to file
+
+After producing the plan, save it to `docs/plans/<feature-name>.md`.
+
+- `<feature-name>` is a short descriptive name for the feature or work being planned (e.g., `http-client.md`, `auth-module.md`, `url-utils.md`).
+- The name should reflect the scope of the plan, not the package name — multiple plans may exist for the same package.
+- Ask the user for the feature name if it is not obvious from context.
+- Create the `docs/plans/` directory if it does not exist.
+- If a plan file with the same name already exists, overwrite it.
+
 ---
 
 ## Quality Bar
