@@ -51,7 +51,7 @@ Imports:
     From: "some_pkg.utils"
 
 Usages:
-  - importlib: .specs/importlib.md
+  - pydantic: .specs/pydantic.md
   - structures: .specs/structures.md
   - pattern: |
        Annotation describing how to use the `pattern` alias.
@@ -72,7 +72,7 @@ Annotations: |
     "load() -> cls_instances:list[Any]": |
       Returns a list of loaded class instances.
 
-"Object::structures.Data::SomeClass()":
+"Object::Data::SomeClass()":
   dest: some.py
   annotations: |
     Class with data model representation.
@@ -87,8 +87,8 @@ Annotations: |
 ```
 
 A single `CODEMANIFEST` may contain:
-- an `Imports` section (external types and modules used in signatures),
-- a `Usages` section (external dependencies, patterns, conventions),
+- an `Imports` section (internal types and modules from other `CODEMANIFEST` files in the same project),
+- a `Usages` section (external dependencies, external types, patterns, conventions),
 - file-level `Annotations` (optional, describes the module or subpackage as a whole),
 - re-export blocks (pass-through types and modules),
 - entity blocks (classes with properties and/or methods),
@@ -99,7 +99,9 @@ A single `CODEMANIFEST` may contain:
 ## Top-Level Sections
 
 ### `Imports`
-Defines external types and modules used in the contract — literally imports from other `CODEMANIFEST` files or external packages.
+Defines **internal** types and modules used in the contract — imports from other `CODEMANIFEST` files within the same project.
+
+External library types (e.g., `requests.HTTPError`) must **not** appear here. They are described in `Usages`.
 
 Example:
 
@@ -107,40 +109,44 @@ Example:
 Imports:
   - Type: Object
     From: "identity.yaml"
-  - Type: HTTPError
-    From: "requests"
   - Module: url
     From: "some_pkg.utils"
 ```
 
 Semantics:
-- **`Type` import**: a type used in signatures but not locally defined.
-  - `Type` is the external type name.
-  - `From` is the source:
-    - a `CODEMANIFEST` path for DSL contract dependencies (relative to working directory),
-    - a Python package name for external library types (e.g., `"requests"`).
+- **`Type` import**: a type from another `CODEMANIFEST` used in signatures but not locally defined.
+  - `Type` is the type name as defined in the source `CODEMANIFEST`.
+  - `From` is the `CODEMANIFEST` path (relative to the working directory) where the type is defined.
 - **`Module` import**: a subpackage or module whose contract is defined in another `CODEMANIFEST`.
   - `Module` is the module/subpackage name.
   - `From` is the Python import path to the parent package (e.g., `"some_pkg.utils"`).
-- Imported types are external dependencies.
+- Imported types are **internal contract dependencies** — they come from other packages within the same project.
+- External library types are described in `Usages`, not in `Imports`.
 - Importing a type or module does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
 ### `Usages`
-Defines external dependencies, patterns, and conventions — anything that explains how to use an external resource in the package.
+Defines external dependencies, external types, patterns, and conventions — anything that explains how to use an external resource in the package.
 
 This is broader than just libraries. A usage entry can be:
-- a library spec (how to install, configure, and use its API),
-- a convention or pattern (how to follow a specific design approach),
+- an **external library** (how to install, configure, and use its API, including which types to import),
+- an **external type** from a third-party library used in signatures (e.g., `requests.HTTPError`, `pydantic.BaseModel`),
+- a **convention or pattern** (how to follow a specific design approach),
 - any usage guidance relevant to the implementation.
+
+External library types used in method signatures or property types must be described in `Usages`, not in `Imports`. `Imports` is reserved for internal project dependencies only.
 
 Example:
 
 ```yaml
 Usages:
-  - importlib: .specs/importlib.md
+  - pydantic: .specs/pydantic.md
   - structures: .specs/structures.md
   - pattern: |
        Annotation describing how to use the `pattern` alias.
+  - requests: |
+       External HTTP library. Import `HTTPError` for error handling
+       and `Response` for return types in method signatures.
+       Install: `pip install requests`.
 ```
 
 Semantics:
@@ -149,7 +155,8 @@ Semantics:
   - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST` file location),
   - a **multiline text** annotation describing the usage directly.
 - `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
-- `Usages` is separate from `Imports`. `Imports` declares types and modules used in contract signatures. `Usages` describes external resources the implementation depends on.
+- `Usages` is separate from `Imports`. `Imports` declares internal types and modules from other `CODEMANIFEST` files. `Usages` describes external resources and external types the implementation depends on.
+- External library types referenced in `Usages` may appear in method signatures, property types, or re-exports. The implementation agent reads `Usages` to understand what external types are available and how to import them.
 
 ### `Annotations` (file-level)
 Optional. Provides structured metadata about the `CODEMANIFEST` file as a whole.
@@ -187,10 +194,12 @@ Example:
 
 ```yaml
 Imports:
-  - Type: HTTPError
-    From: "requests"
   - Module: url
     From: "some_pkg.utils"
+
+Usages:
+  - requests: |
+       External HTTP library. Provides `HTTPError` for error handling.
 
 ---
 
@@ -203,6 +212,7 @@ Semantics:
 - No `dest`, `properties`, or `methods` are defined.
 - The type or module is not a contract entity — no implementation obligation exists.
 - The planning agent must ensure the name is available from the package `__init__.py`.
+- Re-exports can reference names from `Imports` (internal) or `Usages` (external). The source of the re-exported name determines how it is imported in the implementation.
 - Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
 ### Entity blocks
@@ -258,20 +268,19 @@ Whether this is implemented as a function or functor depends on the target langu
 
 ## Mutation Syntax `Type::`
 
-An entity block may use the mutation syntax to indicate that the entity extends (implements, inherits from) existing types or usage-defined types.
+An entity block may use the mutation syntax to indicate that the entity extends (implements, inherits from) existing types.
 
 Syntax:
 
 ```yaml
-"Type1::Type2::usage.Alias::ClassName()":
+"Type1::Type2::ClassName()":
   dest: file.py
   properties:
   methods:
 ```
 
 Each `Type::` segment before the class name declares a mutation:
-- **`ImportedType::`** — mutates a type from `Imports`. The type must be declared in the `Imports` section.
-- **`usage.Name::`** — mutates a type defined in a usage spec. The usage spec already explains what `Name` is, so the contract can extend it.
+- **`TypeName::`** — mutates an existing type. The type may come from `Imports` (internal) or `Usages` (external). The planning agent resolves the type from whichever section declares it.
 
 The last segment before `(` is always the class name (with optional constructor signature).
 
@@ -280,14 +289,14 @@ Example:
 ```yaml
 Imports:
   - Type: Object
-    From: "kotlin"
+    From: "identity.yaml"
 
 Usages:
-  - structures: .specs/structures.md
+  - pydantic: .specs/pydantic.md
 
 ---
 
-"Object::structures.Data::SomeClass()":
+"Object::BaseModel::SomeClass()":
   dest: some.py
   annotations: |
     Class with data model representation.
@@ -297,15 +306,15 @@ Usages:
 ```
 
 Here:
-- `Object::` — mutates the `Object` type imported from `Imports`,
-- `structures.Data::` — mutates the `Data` type described in the `structures` usage spec,
+- `Object::` — mutates the `Object` type from `Imports` (internal type from `identity.yaml`),
+- `BaseModel::` — mutates the `BaseModel` type described in `Usages` (external type from pydantic),
 - `SomeClass()` — the class name with optional constructor signature.
 
 Semantics:
 - The syntax `Type::` before the class name means "extends an existing interface" — how the mutation is implemented is up to the implementation agent.
 - Multiple `Type::` segments indicate multiple mutations (e.g., multiple inheritance, interface implementation).
 - The class name after the last `::` may include a constructor signature: `Type::ClassName(arg: Type)`.
-- Mutation blocks do not require a corresponding `Imports` entry for usage-defined types — the usage spec already defines them.
+- The type is resolved from `Imports` or `Usages` — no prefix distinction is needed.
 
 ---
 
@@ -515,7 +524,8 @@ The DSL defines:
 - required API shape,
 - required implementation locations,
 - behavioral meaning from descriptions,
-- external contract dependencies,
+- internal contract dependencies (via `Imports`),
+- external dependencies and types (via `Usages`),
 - re-exported types and modules,
 - standalone functions (as top-level blocks without properties/methods),
 - interface mutations via `Type::` syntax.
@@ -540,7 +550,7 @@ The contract implies the following:
 3. Each contract entity must be implemented in its declared `dest`.
 4. Internal decomposition is allowed.
 5. Internal decomposition must not erase or distort the contract.
-6. Imported contract types define external dependencies.
+6. Imported contract types define internal dependencies (from other `CODEMANIFEST` files in the same project). External dependencies are described in `Usages`.
 7. Re-exported types and modules must be available from the facade but carry no implementation obligation.
 8. Re-exports can only embed entities from lower filesystem levels.
 9. Package boundaries are user-defined and must be preserved.

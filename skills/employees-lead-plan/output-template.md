@@ -54,7 +54,7 @@ For each usage entry:
 ### External Dependencies
 
 List all external dependencies the implementation relies on:
-- Libraries from `Imports` (external packages)
+- External library types from `Usages` (third-party packages)
 - Pattern/convention references from `Usages`
 - Required tools or frameworks
 

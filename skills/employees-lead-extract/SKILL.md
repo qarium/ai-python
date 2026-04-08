@@ -68,21 +68,23 @@ Analyze all facade entities to detect external dependencies.
 
 #### Import detection
 For each type used in signatures that is not locally defined:
-- Determine whether it comes from an external Python package (e.g., `requests.Response`, `requests.HTTPError`).
-- Determine whether it comes from another `CODEMANIFEST` contract (e.g., a type defined in a sibling package).
+- Determine whether it comes from another `CODEMANIFEST` contract (e.g., a type defined in a sibling package within the same project).
 - Record each as an `Imports` entry with `Type` or `Module` kind.
+- **External library types** (e.g., `requests.Response`, `pydantic.BaseModel`) must **not** be recorded in `Imports`. They are recorded in `Usages` instead.
 
-#### Library detection
+#### Library and external type detection
 For each external Python package used in the source code:
 - Identify the package name.
 - Extract the purpose from usage patterns in the code.
 - Record as a `Usages` entry with a spec path or annotation describing the library's role.
+- If specific types from the external library are used in signatures (e.g., `HTTPError`, `Response`), include them in the usage annotation so the implementation agent knows what to import.
 
 #### Re-export detection
 For each entity in the facade that is **not locally defined** but imported from an external package:
 - This is a re-export — the entity passes through the facade as-is.
 - Record as a `"->Name": {}` re-export block.
-- Also record the corresponding `Imports` entry for the type.
+- If the source is an internal `CODEMANIFEST` type, also record the corresponding `Imports` entry.
+- If the source is an external library, ensure the library is described in `Usages` so the implementation agent knows where to import from.
 
 Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`. Never create a re-export that references a sibling or parent level.
 
@@ -94,8 +96,8 @@ For each file containing facade entities:
 2. Identify top-level classes that are part of the facade set.
 3. For each class:
    - Detect **parent classes** (bases in the class definition):
-     - If a base is from an imported external type → generate `Type::` mutation syntax.
-     - If a base is from a usage-defined type → generate `usage.Name::` mutation syntax.
+     - For each base class → generate `Type::` mutation syntax (e.g., `BaseClass::ClassName()`).
+     - The type is resolved from `Imports` (internal) or `Usages` (external) — no prefix distinction needed.
      - Multiple bases → multiple `Type::` segments before the class name.
    - Extract all **public methods** (not starting with `_`, unless `__call__`).
    - Extract all **public properties and attributes**:
@@ -246,13 +248,14 @@ Assemble each `CODEMANIFEST` file with the following structure (in order):
 
 ```yaml
 Imports:
-  - Type: ExternalType
-    From: "package_name"
   - Module: submodule
     From: "some_package.submodule"
 
 Usages:
   - requests: .specs/requests.md
+  - pydantic: |
+       External library for data validation.
+       Import `BaseModel` for creating data models.
   - pattern: |
        Annotation describing a usage pattern.
 
@@ -330,10 +333,13 @@ After assembling all `CODEMANIFEST` files and before writing:
 
 | Category | Name | Source |
 |----------|------|--------|
-| Import (Type) | HTTPError | requests |
+| Import (Type) | User | identity.yaml |
 | Import (Module) | url | some_package.utils |
-| Usage | requests | pyproject.toml |
-| Re-export | HTTPError | requests |
+| Usage (external type) | HTTPError | requests |
+| Usage (library) | requests | pyproject.toml |
+| Usage (pattern) | pydantic | .specs/pydantic.md |
+| Re-export | HTTPError | requests (from Usages) |
+| Re-export | url | some_package.utils (from Imports) |
 
 4. List any **ambiguities** or **decisions** made during extraction:
    - Entities excluded from the facade (with reason).
@@ -405,12 +411,12 @@ Before returning the result, verify:
 6. Did I provide descriptions for every property, method, and function?
 7. Are all `dest` paths relative to the correct `CODEMANIFEST` file location?
 8. Did I exclude private/internal entities?
-9. Did I handle re-exports correctly (`->Name: {}` with corresponding `Imports`)?
+9. Did I handle re-exports correctly (`->Name: {}` with corresponding `Imports` for internal types or `Usages` for external types)?
 10. Did I clearly mark inferred descriptions?
 11. Is the YAML syntactically valid?
 12. Did I create **only** `CODEMANIFEST` files — no other files?
-13. Did I generate `Imports` for all external types used in signatures?
-14. Did I generate `Usages` for external package dependencies?
+13. Did I generate `Imports` only for internal types (from other `CODEMANIFEST` files)?
+14. Did I generate `Usages` for external package dependencies and external types?
 15. Did I produce separate `CODEMANIFEST` files for subpackages that have their own facade?
 16. Did I include `annotations` where appropriate (file-level, entity-level, function-level)?
 17. Is all text content in `CODEMANIFEST` files written in English?

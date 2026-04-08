@@ -84,7 +84,8 @@ Implement user management service package with:
 - `pydantic` — spec at `.specs/pydantic.md`, may be used for data validation
 
 ### External Dependencies
-- `User` type from `identity.yaml` (contract dependency)
+- `User` type from `identity.yaml` (internal contract dependency)
+- `pydantic` from `Usages` (external library for data validation)
 
 ## Facts
 - Package facade must expose `UserService`, `format_user`, and `User`

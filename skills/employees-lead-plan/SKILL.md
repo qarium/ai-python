@@ -82,7 +82,7 @@ When ralphex executes a task, the AI agent follows this protocol:
 - Entity names may contain constructor signatures. Constructor parameters are documentation for the implementation agent — the entity as a whole is the contract unit, not individual parameters.
 - All contract entities must be preserved in the plan.
 - Contract entities must not be silently removed, collapsed, renamed, or replaced with unrelated abstractions.
-- Entities may declare interface mutations via `Type::` syntax (e.g., `Object::usage.Data::ClassName()`). Each `Type::` segment means the entity mutates an existing interface — how is up to the implementation agent.
+- Entities may declare interface mutations via `Type::` syntax (e.g., `Object::Data::ClassName()`). Each `Type::` segment means the entity mutates an existing interface — how is up to the implementation agent.
 
 ### Location model
 - Each contract entity has a `dest`.
@@ -177,9 +177,9 @@ The DSL compiles into plan tasks as follows:
 
 | DSL Element | Plan Output |
 |---|---|
-| `Type Import` | Context section — no direct tasks, but imported type must be available in signatures |
+| `Type Import` | Context section — internal type from another `CODEMANIFEST`, must be available in signatures |
 | `Module Import` | Context section — subpackage with own contract, may require infrastructure setup for re-exports |
-| `Usages` | Context section with implementation guidance for the AI agent |
+| `Usages` | Context section with implementation guidance for the AI agent, including external library types |
 | `Annotations` | Context hints embedded in task descriptions |
 | `->Re-exports` | Task: ensure name importable from package `__init__.py` |
 | `Entity` with `properties` | Task: create entity in `dest`, implement properties |
@@ -212,15 +212,17 @@ They define:
 
 These requirements must appear in the task instructions so the AI implementation agent understands what to build.
 
-### Imports are contract dependencies
-Imports define external contract dependencies.
+### Imports are internal contract dependencies
+Imports define internal contract dependencies — types and modules from other `CODEMANIFEST` files in the same project.
+External library types are described in `Usages`.
 Do not locally redefine imported contract types unless the contract explicitly requires it.
 Include import context in task descriptions.
 
-### Usages are implementation context
-`Usages` describes external dependencies, patterns, and conventions the implementation relies on.
+### Usages are implementation context and external dependencies
+`Usages` describes external dependencies, external types, patterns, and conventions the implementation relies on.
+This includes third-party library types used in signatures (e.g., `requests.HTTPError`, `pydantic.BaseModel`).
 They provide context for the implementation agent — what each resource does and how to use it.
-Include usage context in the plan so the AI implementation agent understands available tools.
+Include usage context in the plan so the AI implementation agent understands available tools and how to import external types.
 
 ### Re-exports are facade obligations
 Re-export blocks (`->Name: {}`) define names that must be available on the facade without local implementation.
@@ -229,8 +231,7 @@ Re-exports can only embed entities from files at lower levels in the filesystem 
 
 ### Mutation declarations are interface obligations
 The `Type::` syntax in entity names declares interface mutations.
-- `ImportedType::` — mutates a type from `Imports`.
-- `usage.Name::` — mutates a type defined in a usage spec.
+- `TypeName::` — mutates an existing type. The type is resolved from `Imports` (internal) or `Usages` (external) — no prefix distinction needed.
 - Multiple `Type::` segments indicate multiple mutations.
 The planning agent must create tasks for implementing the mutation mechanism.
 
