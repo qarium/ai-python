@@ -27,7 +27,7 @@ For each contract entity:
 - Kind: `<class | function | re-export>`
 - Declared `dest`: `<file path>`
 - Facade obligation: must be importable from `<package>`
-- Extends: `[Type]` declarations (if any)
+- Mutations: `Type::` declarations (if any)
 - Properties: (list with types and descriptions)
 - Methods: (list with signatures and descriptions)
 - Semantic requirements from descriptions: (key behavioral expectations)

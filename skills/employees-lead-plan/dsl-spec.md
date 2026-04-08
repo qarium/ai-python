@@ -72,7 +72,7 @@ Annotations: |
     "load() -> cls_instances:list[Any]": |
       Returns a list of loaded class instances.
 
-"[Object][structures.Data]SomeClass()":
+"Object::structures.Data::SomeClass()":
   dest: some.py
   annotations: |
     Class with data model representation.
@@ -256,22 +256,24 @@ Whether this is implemented as a function or functor depends on the target langu
 
 ---
 
-## Extends Syntax `[Type]`
+## Mutation Syntax `Type::`
 
-An entity block may use the extends syntax to indicate that the entity extends (implements, inherits from) existing types or usage-defined types.
+An entity block may use the mutation syntax to indicate that the entity extends (implements, inherits from) existing types or usage-defined types.
 
 Syntax:
 
 ```yaml
-"[Type1][Type2][usage.Alias]ClassName()":
+"Type1::Type2::usage.Alias::ClassName()":
   dest: file.py
   properties:
   methods:
 ```
 
-Each `[...]` bracket before the class name declares an extension:
-- **`[ImportedType]`** — extends a type from `Imports`. The type must be declared in the `Imports` section.
-- **`[usage.Name]`** — extends a type defined in a usage spec. The usage spec already explains what `Name` is, so the contract can extend it.
+Each `Type::` segment before the class name declares a mutation:
+- **`ImportedType::`** — mutates a type from `Imports`. The type must be declared in the `Imports` section.
+- **`usage.Name::`** — mutates a type defined in a usage spec. The usage spec already explains what `Name` is, so the contract can extend it.
+
+The last segment before `(` is always the class name (with optional constructor signature).
 
 Example:
 
@@ -285,7 +287,7 @@ Usages:
 
 ---
 
-"[Object][structures.Data]SomeClass()":
+"Object::structures.Data::SomeClass()":
   dest: some.py
   annotations: |
     Class with data model representation.
@@ -295,15 +297,15 @@ Usages:
 ```
 
 Here:
-- `[Object]` — extends the `Object` type imported from `Imports`,
-- `[structures.Data]` — extends the `Data` type described in the `structures` usage spec,
+- `Object::` — mutates the `Object` type imported from `Imports`,
+- `structures.Data::` — mutates the `Data` type described in the `structures` usage spec,
 - `SomeClass()` — the class name with optional constructor signature.
 
 Semantics:
-- The syntax `[Type]` means "extends an existing interface" — how the extension is implemented is up to the implementation agent.
-- Multiple `[Type]` blocks indicate multiple extensions (e.g., multiple inheritance, interface implementation).
-- The class name after the brackets may include a constructor signature: `[Type]ClassName(arg: Type)`.
-- Extends blocks do not require a corresponding `Imports` entry for usage-defined types — the usage spec already defines them.
+- The syntax `Type::` before the class name means "extends an existing interface" — how the mutation is implemented is up to the implementation agent.
+- Multiple `Type::` segments indicate multiple mutations (e.g., multiple inheritance, interface implementation).
+- The class name after the last `::` may include a constructor signature: `Type::ClassName(arg: Type)`.
+- Mutation blocks do not require a corresponding `Imports` entry for usage-defined types — the usage spec already defines them.
 
 ---
 
@@ -516,7 +518,7 @@ The DSL defines:
 - external contract dependencies,
 - re-exported types and modules,
 - standalone functions (as top-level blocks without properties/methods),
-- interface extensions via `[Type]` syntax.
+- interface mutations via `Type::` syntax.
 
 The DSL does **not** automatically define:
 - internal module decomposition,
@@ -544,7 +546,7 @@ The contract implies the following:
 9. Package boundaries are user-defined and must be preserved.
 10. Subpackage contracts are independent — each `CODEMANIFEST` owns its level.
 11. Entity names may contain constructor signatures to document instantiation expectations.
-12. The `[Type]` extends syntax declares interface extension without prescribing implementation.
+12. The `Type::` mutation syntax declares interface mutation without prescribing implementation.
 
 ---
 
@@ -558,7 +560,7 @@ A planning agent should use this DSL to answer:
 - What should be added internally to realize the contract?
 - What must be re-exported without implementation?
 - What standalone functions must be implemented?
-- What interface extensions are required?
+- What interface mutations are required?
 - What must be tested to prove contract compliance?
 
 ---
@@ -571,7 +573,7 @@ Entities may:
 - share a single `dest`,
 - point to different `dest` files,
 - depend on imported contract types,
-- extend other types via `[Type]` syntax,
+- mutate other types via `Type::` syntax,
 - belong to the same facade surface.
 
 This is valid.

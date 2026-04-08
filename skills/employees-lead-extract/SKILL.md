@@ -94,9 +94,9 @@ For each file containing facade entities:
 2. Identify top-level classes that are part of the facade set.
 3. For each class:
    - Detect **parent classes** (bases in the class definition):
-     - If a base is from an imported external type → generate `[Type]` extends syntax.
-     - If a base is from a usage-defined type → generate `[usage.Name]` extends syntax.
-     - Multiple bases → multiple `[Type]` brackets.
+     - If a base is from an imported external type → generate `Type::` mutation syntax.
+     - If a base is from a usage-defined type → generate `usage.Name::` mutation syntax.
+     - Multiple bases → multiple `Type::` segments before the class name.
    - Extract all **public methods** (not starting with `_`, unless `__call__`).
    - Extract all **public properties and attributes**:
      - `@property` decorated methods.
@@ -167,7 +167,7 @@ Transform Python signatures into DSL format.
 #### Entity name format
 - If the class has a constructor with parameters → use full constructor signature: `"ClassName(arg: Type)"`
 - If the class has no constructor parameters or constructor details are not part of the public contract → use simple name: `ClassName:`
-- If the class extends other types → prepend `[Type]` brackets: `"[ParentType]ClassName(arg: Type)":` or `"[ParentType]ClassName:"`
+- If the class extends other types → prepend `Type::` segments: `"ParentType::ClassName(arg: Type)":` or `"ParentType::ClassName:"`
 
 #### Property format
 ```
@@ -414,7 +414,7 @@ Before returning the result, verify:
 15. Did I produce separate `CODEMANIFEST` files for subpackages that have their own facade?
 16. Did I include `annotations` where appropriate (file-level, entity-level, function-level)?
 17. Is all text content in `CODEMANIFEST` files written in English?
-18. Did I detect `[Type]` extends for parent classes correctly?
+18. Did I detect `Type::` mutations for parent classes correctly?
 19. Did I use simple entity names where no constructor parameters exist?
 
 ---

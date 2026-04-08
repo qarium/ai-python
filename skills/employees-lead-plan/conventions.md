@@ -237,7 +237,7 @@ Tasks must be ordered for sequential execution:
 2. Entity skeletons (classes and functions in correct `dest` files)
 3. Property implementations
 4. Method implementations (one per method or grouped by entity)
-5. Interface extensions (`[Type]` extends)
+5. Interface mutations (`Type::` mutation)
 6. Contract tests
 7. Integration/edge case tests
 

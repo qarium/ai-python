@@ -82,7 +82,7 @@ When ralphex executes a task, the AI agent follows this protocol:
 - Entity names may contain constructor signatures. Constructor parameters are documentation for the implementation agent — the entity as a whole is the contract unit, not individual parameters.
 - All contract entities must be preserved in the plan.
 - Contract entities must not be silently removed, collapsed, renamed, or replaced with unrelated abstractions.
-- Entities may declare interface extensions via `[Type]` syntax (e.g., `[Object][usage.Data]ClassName()`). Each `[Type]` means the entity extends an existing interface — how is up to the implementation agent.
+- Entities may declare interface mutations via `Type::` syntax (e.g., `Object::usage.Data::ClassName()`). Each `Type::` segment means the entity mutates an existing interface — how is up to the implementation agent.
 
 ### Location model
 - Each contract entity has a `dest`.
@@ -185,7 +185,7 @@ The DSL compiles into plan tasks as follows:
 | `Entity` with `properties` | Task: create entity in `dest`, implement properties |
 | `Entity` with `methods` | Task: implement methods in `dest` with behavior from descriptions |
 | `Standalone function` | Task: implement function in `dest` |
-| `[Type]` extends | Task: implement interface extension mechanism |
+| `Type::` mutation | Task: implement interface mutation mechanism |
 | Method/property descriptions | Reflected in task implementation instructions |
 
 ### Task ordering principles
@@ -195,7 +195,7 @@ Tasks must be ordered for sequential AI execution:
 2. **Entity skeleton tasks** — create classes/functions in correct `dest` files
 3. **Property implementation tasks** — implement facade-visible properties
 4. **Method implementation tasks** — implement facade-visible methods with described behavior
-5. **Interface extension tasks** — implement `[Type]` extends declarations
+5. **Interface mutation tasks** — implement `Type::` mutation declarations
 6. **Contract test tasks** — facade availability, API shape, behavior tests
 7. **Integration test tasks** — cross-entity, edge case, negative scenario tests
 
@@ -227,12 +227,12 @@ Re-export blocks (`->Name: {}`) define names that must be available on the facad
 The planning agent must ensure each re-exported name is importable from the package `__init__.py`.
 Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
-### Extends declarations are interface obligations
-The `[Type]` syntax in entity names declares interface extensions.
-- `[ImportedType]` — extends a type from `Imports`.
-- `[usage.Name]` — extends a type defined in a usage spec.
-- Multiple `[Type]` blocks indicate multiple extensions.
-The planning agent must create tasks for implementing the extension mechanism.
+### Mutation declarations are interface obligations
+The `Type::` syntax in entity names declares interface mutations.
+- `ImportedType::` — mutates a type from `Imports`.
+- `usage.Name::` — mutates a type defined in a usage spec.
+- Multiple `Type::` segments indicate multiple mutations.
+The planning agent must create tasks for implementing the mutation mechanism.
 
 ### Annotations are context hints
 `annotations` at file-level, entity-level, or function-level provide metadata and context.
@@ -425,7 +425,7 @@ Before finalizing the answer, verify:
 15. Did I include `Usages` context for the implementation agent?
 16. Did I process all hierarchical `CODEMANIFEST` files (not just the root)?
 17. Did I consider `annotations` as context hints?
-18. Did I process all `[Type]` extends declarations and plan interface extension obligations?
+18. Did I process all `Type::` mutation declarations and plan interface mutation obligations?
 19. Did I treat constructor parameters as documentation, not individual contract obligations?
 20. Are tasks ordered correctly (infrastructure → entities → tests)?
 21. Does the `## Validation Commands` section include all necessary verification commands?
