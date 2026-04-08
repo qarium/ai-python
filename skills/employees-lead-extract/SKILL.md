@@ -62,9 +62,32 @@ All output must conform to the DSL specification defined in `../employees-lead-p
 
 Entities NOT in the facade set are considered **internal** and must not appear in `CODEMANIFEST`.
 
+#### Module expansion
+The DSL does not have a `Module` concept. If the facade set contains a **module reference** (e.g., `from . import http` or `from .http import http` in `__init__.py`), the module itself is NOT a contract entity. Instead:
+
+1. Read the module's `__init__.py` and source files to discover its public entities.
+2. Trace all usages of that module across the package (e.g., `http.Client(...)`, `http.Session(...)`).
+3. Determine which specific objects from the module are actually used or re-exported.
+4. Add those objects to the facade set **individually** — each as its own entity or re-export.
+5. Replace the module-level import with specific object imports.
+
+Example — before expansion:
+```python
+# some_package/__init__.py
+from . import http  # module re-export
+```
+
+After expansion, the `CODEMANIFEST` should contain individual re-exports or entities from `http/`:
+```yaml
+"->HTTPClient": {}
+"->HTTPSession": {}
+```
+
+This applies at every level of the hierarchy — root `__init__.py`, subpackage `__init__.py`, etc.
+
 ### Phase 3: Dependency Detection
 
-Analyze all facade entities to detect external dependencies.
+Analyze all facade entities to detect external dependencies and external knowledge.
 
 #### Import detection
 For each type used in signatures that is not locally defined:
@@ -72,21 +95,30 @@ For each type used in signatures that is not locally defined:
 - Record each as an `Imports` entry with `Type` kind.
 - **External library types** (e.g., `requests.Response`, `pydantic.BaseModel`) must **not** be recorded in `Imports`. They are recorded in `Usages` instead.
 
-#### Library and external type detection
+#### External resource detection
+`Usages` is a general-purpose section — it can hold anything the implementation agent needs to know from outside the package. Detect and record all external resources the code depends on:
+
 For each external Python package used in the source code:
 - Identify the package name.
 - Extract the purpose from usage patterns in the code.
-- Record as a `Usages` entry with a spec path or annotation describing the library's role.
-- If specific types from the external library are used in signatures (e.g., `HTTPError`, `Response`), include them in the usage annotation so the implementation agent knows what to import.
+- Record as a `Usages` entry with a spec path or annotation describing the library's role, the types it provides, or the pattern/convention it follows.
+- If specific types from the external library are used in signatures (e.g., `HTTPError`, `Response`) or as base classes in `Type::` mutations (e.g., `BaseModel`, `Session`), include them in the usage annotation so the implementation agent knows what to import. When generating `Type::` mutations for external types, use the qualified syntax: `usage.Type::` (e.g., `pydantic.BaseModel::`), where `usage` is the key in the `Usages` section.
+
+For any other external resource the code interacts with:
+- FFI/bridge calls to another language (Rust via PyO3, C via ctypes, Go via cgo, etc.)
+- External tools or build steps required by the package
+- Protocols, API schemas, or configuration formats the package implements
+- Spec files or documentation the implementation must follow
+- Record each as a `Usages` entry with a path to the relevant spec or an annotation explaining the resource.
 
 #### Re-export detection
 For each entity in the facade that is **not locally defined** but imported from an external package:
 - This is a re-export — the entity passes through the facade as-is.
-- Record as a `"->Name": {}` re-export block.
+- Record as a `"->Name": {}` re-export block (for internal types) or `"->usage.Type": {}` (for external types from `Usages`).
 - If the source is an internal `CODEMANIFEST` type, also record the corresponding `Imports` entry.
 - If the source is an external library, ensure the library is described in `Usages` so the implementation agent knows where to import from.
 
-Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`. Never create a re-export that references a sibling or parent level.
+Re-exports from `Imports` can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`. Never create an `Imports` re-export that references a sibling or parent level. Re-exports from `Usages` (external types) use qualified names (e.g., `"->requests.HTTPError": {}`) and are not subject to hierarchy constraints. Re-exporting from `Usages` is allowed but not recommended — prefer re-exporting internal types from `Imports`.
 
 ### Phase 4: Entity Extraction
 
@@ -96,8 +128,9 @@ For each file containing facade entities:
 2. Identify top-level classes that are part of the facade set.
 3. For each class:
    - Detect **parent classes** (bases in the class definition):
-     - For each base class → generate `Type::` mutation syntax (e.g., `BaseClass::ClassName()`).
-     - The type is resolved from `Imports` (internal) or `Usages` (external) — no prefix distinction needed.
+     - For each base class → generate `Type::` mutation syntax (e.g., `pydantic.BaseModel::ClassName()`). A mutation means the entity extends an existing type — the mechanism is not prescribed. See `dsl-spec.md` → *Mutation Syntax `Type::`* for the conceptual explanation.
+     - Types from `Imports` use simple names (e.g., `Object::`). Types from `Usages` use qualified names: `usage.Type::` (e.g., `pydantic.BaseModel::`).
+     - Every base class referenced in `Type::` **must** have a corresponding entry in `Imports` (for internal types) or `Usages` (for external types) that explicitly declares that type with its import path.
      - Multiple bases → multiple `Type::` segments before the class name.
    - Extract all **public methods** (not starting with `_`, unless `__call__`).
    - Extract all **public properties and attributes**:
@@ -133,7 +166,7 @@ For inferred descriptions, include an `annotations` entry to mark them. Use enti
 
 ```yaml
 "EntityName()":
-  dest: path/to/file.py
+  location: path/to/file.py
   annotations: |
       Descriptions inferred from code — review for accuracy.
   properties:
@@ -144,23 +177,23 @@ Standalone function blocks use `annotations` for inferred descriptions:
 
 ```yaml
 "func(arg: Type) -> result:Type":
-  dest: path.py
+  location: path.py
   annotations: |
     What the function does.
 ```
 
-### Phase 6: Dest Mapping
+### Phase 6: Location Mapping
 
 For each extracted entity:
-- `dest` is the file path **relative to the `CODEMANIFEST` file location**.
+- `location` is the file path **relative to the `CODEMANIFEST` file location**.
 - For the package root `CODEMANIFEST`: strip the leading package name directory.
-- For subpackage `CODEMANIFEST` files: `dest` is relative to the subpackage directory.
+- For subpackage `CODEMANIFEST` files: `location` is relative to the subpackage directory.
 
 Examples:
-- Package root `CODEMANIFEST`: package `some_package/`, file `some_package/http/client.py` → `dest: http/client.py`
-- Subpackage `CODEMANIFEST`: subpackage `some_package/utils/`, file `some_package/utils/url.py` → `dest: url.py`
+- Package root `CODEMANIFEST`: package `some_package/`, file `some_package/http/client.py` → `location: http/client.py`
+- Subpackage `CODEMANIFEST`: subpackage `some_package/utils/`, file `some_package/utils/url.py` → `location: url.py`
 
-Multiple entities in the same file share the same `dest`. This is valid per the DSL spec.
+Multiple entities in the same file share the same `location`. This is valid per the DSL spec.
 
 ### Phase 7: Signature Formatting
 
@@ -168,19 +201,19 @@ Transform Python signatures into DSL format.
 
 #### Entity name format
 - If the class has a constructor with parameters → use full constructor signature: `"ClassName(arg: Type)"`
-- If the class has no constructor parameters or constructor details are not part of the public contract → use simple name: `ClassName:`
-- If the class extends other types → prepend `Type::` segments: `"ParentType::ClassName(arg: Type)":` or `"ParentType::ClassName:"`
+- If the class has no constructor parameters → use empty constructor signature: `ClassName()`
+- If the class extends other types → prepend `Type::` segments: `"ParentType::ClassName(arg: Type)":` for internal types, `"usage.ParentType::ClassName(arg: Type)":` for external types
 
 #### Property format
 ```
-PropertyName: |
-  `Type` -> description text
+PropertyName -> Type: |
+  Description text
 ```
 
 Rules:
 - `PropertyName` = actual property or attribute name from code.
-- `Type` = the Python type annotation in backticks.
-- Description text after `->` explains what the property represents.
+- `Type` = the Python type annotation (after `->` in the key).
+- Description text in the value explains what the property represents.
 
 #### Method format
 ```
@@ -199,7 +232,7 @@ Rules:
 Same as method format but as a top-level block without `properties` or `methods`:
 ```yaml
 "function_name(arg: Type) -> label:ReturnType":
-  dest: path/to/file.py
+  location: path/to/file.py
   annotations: |
     What the function does.
 ```
@@ -233,7 +266,7 @@ Parent `CODEMANIFEST`:
 Subpackage `CODEMANIFEST` (`some_package/utils/CODEMANIFEST`):
 ```yaml
 "join(*parts: str) -> joined:str":
-  dest: url.py
+  location: url.py
   annotations: |
     Joins URL parts into a single URL string.
 ```
@@ -245,13 +278,15 @@ Assemble each `CODEMANIFEST` file with the following structure (in order):
 ```yaml
 Imports:
   - Type: SomeType
-    From: "other_package/CODEMANIFEST"
+    From: "other_package"
 
 Usages:
   - requests: .specs/requests.md
   - pydantic: |
        External library for data validation.
        Import `BaseModel` for creating data models.
+  - ex_type: |
+       External library providing `ExternalType`.
   - pattern: |
        Annotation describing a usage pattern.
 
@@ -260,21 +295,21 @@ Annotations: |
 
 ---
 
-"->ExternalType": {}
+"->ex_type.ExternalType": {}
 
 "EntityName()":
-  dest: path/to/file.py
+  location: path/to/file.py
   annotations: |
       Optional entity-level description.
   properties:
-    name: |
-      `str` -> Description text.
+    name -> str: |
+      Description text.
   methods:
     "method(arg: Type) -> label:ReturnType": |
       Description text.
 
 "function_name(arg: Type) -> label:ReturnType":
-  dest: path/to/file.py
+  location: path/to/file.py
   annotations: |
     What the function does.
 ```
@@ -282,10 +317,10 @@ Annotations: |
 Ordering rules:
 - Sections ordered: `Imports`, `Usages`, `Annotations`, `---`, re-exports, entity blocks, standalone function blocks.
 - Re-exports ordered alphabetically.
-- Entities ordered by `dest` path, then by name.
+- Entities ordered by `location` path, then by name.
 - Properties before methods within each entity.
 - Methods ordered by: `__call__` first (if present), then alphabetical.
-- Standalone function blocks ordered by `dest` path, then by name.
+- Standalone function blocks ordered by `location` path, then by name.
 
 ---
 
@@ -319,7 +354,7 @@ After assembling all `CODEMANIFEST` files and before writing:
 1. Show each proposed `CODEMANIFEST` content with its file path.
 2. Show a summary table of all extracted entities across all files:
 
-| File | Entity | Type | dest | Properties | Methods/Functions | Description source |
+| File | Entity | Type | location | Properties | Methods/Functions | Description source |
 |------|--------|------|------|-----------|-------------------|--------------------|
 | CODEMANIFEST | ... | class | ... | N | M | docstring / inferred |
 | utils/CODEMANIFEST | join | function | url.py | - | - | docstring / inferred |
@@ -328,7 +363,7 @@ After assembling all `CODEMANIFEST` files and before writing:
 
 | Category | Name | Source |
 |----------|------|--------|
-| Import (Type) | User | identity.yaml |
+| Import (Type) | User | identity |
 | Usage (external type) | HTTPError | requests |
 | Usage (library) | requests | pyproject.toml |
 | Usage (pattern) | pydantic | .specs/pydantic.md |
@@ -352,15 +387,15 @@ After assembling all `CODEMANIFEST` files and before writing:
 Before finalizing each `CODEMANIFEST`, verify:
 
 1. Every entity listed is available from the package facade (importable via `__init__.py`).
-2. Every `dest` points to an actual source file.
+2. Every `location` points to an actual source file.
 3. Every property has a name and a description with type information.
 4. Every method has a name, parameters with types, a return label, and a return type.
 5. Every property and method has a description (extracted or inferred).
-6. Every standalone function block has a `dest` and description in `annotations`.
+6. Every standalone function block has a `location` and description in `annotations`.
 7. No private entity is included unless explicitly requested.
-8. Every re-export has a corresponding `Imports` entry.
+8. Every re-export has a corresponding `Imports` entry (for internal types) or `Usages` entry (for external types).
 9. Every `Usages` entry has either a spec path or annotation text.
-10. `dest` paths are relative to the `CODEMANIFEST` file location (not absolute).
+10. `location` paths are relative to the `CODEMANIFEST` file location (not absolute).
 11. The YAML is syntactically valid.
 
 ---
@@ -371,7 +406,7 @@ A good extraction:
 - captures every public facade entity,
 - preserves exact type annotations from source,
 - provides meaningful descriptions,
-- correctly maps `dest` relative paths,
+- correctly maps `location` relative paths,
 - clearly distinguishes extracted from inferred information,
 - correctly identifies re-exports vs contract entities,
 - generates appropriate `Imports`, `Usages`, and re-export sections,
@@ -382,7 +417,7 @@ A bad extraction:
 - contains non-English text in descriptions, annotations, or labels,
 - includes internal-only helpers as contract entities,
 - drops type annotations or invents missing ones without marking as inferred,
-- uses absolute paths in `dest`,
+- uses absolute paths in `location`,
 - includes `__init__` parameters as properties,
 - omits descriptions,
 - fails to detect the facade boundary,
@@ -403,19 +438,19 @@ Before returning the result, verify:
 4. Did I include public instance attributes (not just `@property`)?
 5. Did I preserve exact type annotations?
 6. Did I provide descriptions for every property, method, and function?
-7. Are all `dest` paths relative to the correct `CODEMANIFEST` file location?
+7. Are all `location` paths relative to the correct `CODEMANIFEST` file location?
 8. Did I exclude private/internal entities?
 9. Did I handle re-exports correctly (`->Name: {}` with corresponding `Imports` for internal types or `Usages` for external types)?
 10. Did I clearly mark inferred descriptions?
 11. Is the YAML syntactically valid?
 12. Did I create **only** `CODEMANIFEST` files — no other files?
 13. Did I generate `Imports` only for internal types (from other `CODEMANIFEST` files)?
-14. Did I generate `Usages` for external package dependencies and external types?
+14. Did I generate `Usages` for all external resources — libraries, types, patterns, conventions, external code references, build tools, protocols, specs, and any other external knowledge?
 15. Did I produce separate `CODEMANIFEST` files for subpackages that have their own facade?
 16. Did I include `annotations` where appropriate (file-level, entity-level, function-level)?
 17. Is all text content in `CODEMANIFEST` files written in English?
 18. Did I detect `Type::` mutations for parent classes correctly?
-19. Did I use simple entity names where no constructor parameters exist?
+19. Did I use constructor signature syntax for entity names (e.g., `ClassName()` or `ClassName(arg: Type)`)?
 
 ---
 

@@ -9,7 +9,7 @@ This example shows how a `CODEMANIFEST` DSL is compiled into a ralphex-compatibl
 ```yaml
 Imports:
   - Type: User
-    From: "identity.yaml"
+    From: "identity"
 
 Usages:
   - pydantic: .specs/pydantic.md
@@ -22,7 +22,7 @@ Annotations: |
 "->User": {}
 
 "UserService()":
-  dest: service.py
+  location: service.py
   annotations: |
     Service for creating and managing users.
   methods:
@@ -33,7 +33,7 @@ Annotations: |
       Returns user by ID. Raises ValueError if not found.
 
 "format_user(user: User) -> formatted:str":
-  dest: formatters.py
+  location: formatters.py
   annotations: |
     Formats user data as a display string.
 ```
@@ -59,32 +59,33 @@ Implement user management service package with:
 
 **Entity: `UserService()`**
 - Kind: class
-- Declared `dest`: `service.py`
+- Declared `location`: `service.py`
 - Facade obligation: must be importable from package
 - Properties: (none declared)
 - Methods:
   - `create_user(name: str) -> result:User` — validates input (non-empty, alphanumeric), creates User entity
   - `get_user(user_id: int) -> user:User` — returns user by ID, raises ValueError if not found
 - Semantic requirements from descriptions: name validation (non-empty, alphanumeric), ValueError on missing user
-- Imported dependencies: `User` from `identity.yaml`
+- Imported dependencies: `User` from `identity`
 - Annotations context: "Service for creating and managing users."
 
 **Entity: `format_user(user: User) -> formatted:str`**
 - Kind: function
-- Declared `dest`: `formatters.py`
+- Declared `location`: `formatters.py`
 - Facade obligation: must be importable from package
 - Semantic requirements from descriptions: formats user data into display string
-- Imported dependencies: `User` from `identity.yaml`
+- Imported dependencies: `User` from `identity`
 - Annotations context: "Formats user data as a display string."
 
 ### Re-exports
-- `User` — from `identity.yaml` via `Imports`, must be importable from `__init__.py`
+- `User` — from `identity` via `Imports`, must be importable from `__init__.py`
+- Hierarchy constraint (for `Imports` only): source must be at a lower filesystem level
 
 ### Usages Context
 - `pydantic` — spec at `.specs/pydantic.md`, may be used for data validation
 
 ### External Dependencies
-- `User` type from `identity.yaml` (internal contract dependency)
+- `User` type from `identity` (internal contract dependency)
 - `pydantic` from `Usages` (external library for data validation)
 
 ## Facts
@@ -96,7 +97,7 @@ Implement user management service package with:
 - `get_user` must raise `ValueError` when user not found
 
 ## Assumptions
-- Assumption: `User` from `identity.yaml` is a class with at least `name` and `id` attributes
+- Assumption: `User` from `identity` is a class with at least `name` and `id` attributes
 - Basis: method signatures reference `User` as return type and parameter
 - Criticality: medium
 - Safe to proceed without confirmation: yes
@@ -120,10 +121,12 @@ Set up the package directory structure and `__init__.py` to expose all contract 
 - [ ] Create `__init__.py` with imports for `UserService` (from `service.py`), `format_user` (from `formatters.py`), and re-export `User` from its source
 - [ ] Create empty `service.py` and `formatters.py` placeholder files
 - [ ] Verify facade availability: `python -c "from package import UserService, format_user, User"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 2: Implement UserService skeleton in service.py
 
-Implement the `UserService` class in `service.py` with constructor and method stubs. This class must be available from the package facade. `User` is imported from `identity.yaml` contract — do not redefine it locally.
+Implement the `UserService` class in `service.py` with constructor and method stubs. This class must be available from the package facade. `User` is imported from `identity` contract — do not redefine it locally.
 
 Annotations context: "Service for creating and managing users."
 
@@ -132,6 +135,8 @@ Annotations context: "Service for creating and managing users."
 - [ ] Add `create_user(name: str) -> User` method skeleton
 - [ ] Add `get_user(user_id: int) -> User` method skeleton
 - [ ] Verify facade availability: `python -c "from package import UserService; svc = UserService()"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 3: Implement create_user method with validation
 
@@ -147,6 +152,8 @@ Implement the `create_user` method behavior. The method must:
 - [ ] Store user in internal storage with generated ID
 - [ ] Return created `User` instance
 - [ ] Verify basic creation: `python -c "from package import UserService; svc = UserService(); u = svc.create_user('Alice'); print(u)"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 4: Implement get_user method with error handling
 
@@ -159,6 +166,8 @@ Implement the `get_user` method behavior. The method must:
 - [ ] Raise `ValueError` with descriptive message when user not found
 - [ ] Return matching `User` instance when found
 - [ ] Verify retrieval: `python -c "from package import UserService; svc = UserService(); u = svc.create_user('Bob'); print(svc.get_user(u.id))"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 5: Implement format_user function in formatters.py
 
@@ -169,6 +178,8 @@ Annotations context: "Formats user data as a display string."
 - [ ] Implement `format_user(user: User) -> str` in `formatters.py`
 - [ ] Format user data into readable string representation
 - [ ] Verify facade availability: `python -c "from package import format_user; print(format_user(user))"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 6: Contract tests for UserService
 
@@ -229,10 +240,18 @@ Task 1 sets up the package structure and facade before any implementation.
 Task 2 creates the class skeleton, Tasks 3-4 add method behavior one at a time.
 
 ### Pattern 3: Standalone functions as separate tasks
-Task 5 implements `format_user` independently since it has its own `dest`.
+Task 5 implements `format_user` independently since it has its own `location`.
 
-### Pattern 4: Tests as separate tasks
-Tasks 6-7 are dedicated test tasks, not mixed with implementation.
+### Pattern 4: Tests follow coding tasks per-package
+Tasks 6-7 are test tasks placed **immediately after the last coding task for the same package**. In a multi-package plan, each package's tests would follow its coding tasks before starting the next package.
+
+**Single package example** (this case): all coding → all tests (tests naturally follow because there is only one package).
+**Multi-package example** (conceptual):
+```
+Package A: Task 1 (infra) → Task 2 (entity) → Task 3 (methods) → Task 4 (tests for A)
+Package B: Task 5 (infra) → Task 6 (entity) → Task 7 (tests for B)
+Package C (depends on A,B): Task 8 (infra) → Task 9 (entity) → Task 10 (tests for C)
+```
 
 ### Pattern 5: Each task is self-contained
 Every task includes enough context for an AI agent to implement it without reading other tasks.
@@ -251,4 +270,4 @@ Bad plan would:
 - Omit validation commands from tasks
 - Create tasks that require reading previous tasks for context
 - Forget re-export obligations
-- Ignore `dest` placement requirements
+- Ignore `location` placement requirements

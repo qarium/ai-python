@@ -25,7 +25,7 @@ For each contract entity:
 
 **Entity: `<entity name>`**
 - Kind: `<class | function | re-export>`
-- Declared `dest`: `<file path>`
+- Declared `location`: `<file path>`
 - Facade obligation: must be importable from `<package>`
 - Mutations: `Type::` declarations (if any)
 - Properties: (list with types and descriptions)
@@ -38,11 +38,11 @@ Repeat for every contract entity.
 
 ### Re-exports
 
-For each re-export block (`->Name: {}`):
+For each re-export block (`->Name: {}` or `->usage.Type: {}`):
 - Name:
-- Source (corresponding `Imports` entry):
+- Source: corresponding `Imports` entry (for internal types) or `Usages` entry (for external types)
 - Facade obligation: must be importable from `__init__.py`
-- Hierarchy constraint: source must be at a lower filesystem level
+- Hierarchy constraint (for `Imports` only): source must be at a lower filesystem level
 
 ### Usages Context
 
@@ -83,7 +83,7 @@ List unresolved questions:
 Compare the contract with the current visible package state:
 - Missing contract entities:
 - Missing facade exposure:
-- Wrong `dest` placement:
+- Wrong `location` placement:
 - API mismatches:
 - Behavioral mismatches:
 - Existing code that can be reused:
@@ -94,15 +94,21 @@ Compare the contract with the current visible package state:
 
 ## Tasks
 
+> **Per-package ordering rule**: Each package's coding tasks are followed immediately by its test tasks. When the plan covers multiple packages, complete one package (coding + tests) before starting the next.
+
+<!-- For each package, repeat this block: -->
+
 ### Task 1: `<descriptive title>`
 
 <Context paragraph: what this task does, which contract entities it covers, relevant imports/usages/annotations. Provide enough context for an AI agent to implement this task independently.>
 
-- [ ] <specific implementation step 1 — e.g., "Create file `path/to/dest.py`">
+- [ ] <specific implementation step 1 — e.g., "Create file `path/to/location.py`">
 - [ ] <specific implementation step 2 — e.g., "Implement class `EntityName` with constructor accepting `(param: Type)`">
 - [ ] <specific implementation step 3 — e.g., "Add `EntityName` to `package/__init__.py`">
 - [ ] <specific implementation step N>
 - [ ] Verify facade availability: `python -c "from package import EntityName"`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
 ### Task 2: `<descriptive title>`
 
@@ -111,12 +117,14 @@ Compare the contract with the current visible package state:
 - [ ] <step>
 - [ ] <step>
 - [ ] <step>
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
 
-Continue for all tasks.
+Continue for all coding tasks **for this package**.
 
 ### Task N: Contract tests for `<entity or scope>`
 
-<Context: what contract aspects are being tested>
+<Context: what contract aspects are being tested for this package>
 
 - [ ] Create test file `tests/test_<entity>.py`
 - [ ] Test facade availability: `from package import Entity`
@@ -125,6 +133,8 @@ Continue for all tasks.
 - [ ] Test negative scenario: `<specific error case>`
 - [ ] Test edge case: `<specific boundary condition>`
 - [ ] Run validation: `pytest tests/test_<entity>.py -v`
+
+<!-- Repeat the entire block (coding tasks + test tasks) for the next package -->
 
 ---
 
@@ -139,7 +149,7 @@ Continue for all tasks.
 
 ## Done Criteria
 
-- [ ] Every contract entity is implemented in the correct `dest`
+- [ ] Every contract entity is implemented in the correct `location`
 - [ ] Every contract entity is available from the package facade
 - [ ] Properties and methods match the declared API
 - [ ] Descriptions are reflected in behavior

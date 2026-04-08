@@ -46,7 +46,7 @@ A typical file may look like this:
 ```yaml
 Imports:
   - Type: Object
-    From: "identity.yaml"
+    From: "identity"
 
 Usages:
   - pydantic: .specs/pydantic.md
@@ -60,26 +60,25 @@ Annotations: |
 ---
 
 "->Object": {}
-"->helpers": {}
 
 "Loader(path: str, cls_prefix: str = 'Test', method_prefix: str = 'test_')":
-  dest: loader.py
+  location: loader.py
   annotations: |
     Description of the Loader entity.
   methods:
     "load() -> cls_instances:list[Any]": |
       Returns a list of loaded class instances.
 
-"Object::Data::SomeClass()":
-  dest: some.py
+"Object::structures.Data::SomeClass()":
+  location: some.py
   annotations: |
     Class with data model representation.
   properties:
-    name: |
-      `str` -> string with the name.
+    name -> str: |
+      String with the name.
 
 "fibonacci(n: int) -> number:int":
-  dest: tools.py
+  location: tools.py
   annotations: |
     Fibonacci number computation.
 ```
@@ -106,25 +105,29 @@ Example:
 ```yaml
 Imports:
   - Type: Object
-    From: "identity.yaml"
+    From: "identity"
+  - Type: Helper
+    From: "resq/utils"
 ```
 
 Semantics:
 - **`Type` import**: a type from another `CODEMANIFEST` used in signatures but not locally defined.
   - `Type` is the type name as defined in the source `CODEMANIFEST`.
-  - `From` is the `CODEMANIFEST` path (relative to the working directory) where the type is defined.
+  - `From` is the package directory path (relative to the working directory) containing the `CODEMANIFEST` where the type is defined. The `CODEMANIFEST` file name itself is not included — it is implied. Path separator must be `/` (filesystem path), not `.` (Python package notation). For example: `"resq/utils"`, not `"resq.utils"`.
 - Imported types are **internal contract dependencies** — they come from other packages within the same project.
 - External library types are described in `Usages`, not in `Imports`.
 - Importing a type does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
 
 ### `Usages`
-Defines external dependencies, external types, patterns, and conventions — anything that explains how to use an external resource in the package.
+A general-purpose section for attaching **any external knowledge** the implementation agent needs. `Usages` is not limited to libraries or types — it is an open mechanism for providing context from outside the package.
 
-This is broader than just libraries. A usage entry can be:
+A usage entry can describe anything:
 - an **external library** (how to install, configure, and use its API, including which types to import),
 - an **external type** from a third-party library used in signatures (e.g., `requests.HTTPError`, `pydantic.BaseModel`),
 - a **convention or pattern** (how to follow a specific design approach),
-- any usage guidance relevant to the implementation.
+- a **reference to external code** in another language (e.g., a spec file explaining how to call a Rust/Go/C++ module from Python),
+- a **build or toolchain instruction** (how to compile, link, or package something),
+- any **external resource** the implementation agent should be aware of — documentation, specs, APIs, protocols, configurations, etc.
 
 External library types used in method signatures or property types must be described in `Usages`, not in `Imports`. `Imports` is reserved for internal project dependencies only.
 
@@ -140,16 +143,19 @@ Usages:
        External HTTP library. Import `HTTPError` for error handling
        and `Response` for return types in method signatures.
        Install: `pip install requests`.
+  - rust_bridge: .specs/rust_bridge.md
+  - grpc_api: .specs/grpc_api.md
 ```
 
 Semantics:
-- Each entry key is the **usage name** (library name, pattern name, convention name).
+- Each entry key is the **usage name** — any meaningful identifier (library name, pattern name, convention name, resource name).
 - The value is either:
   - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST` file location),
   - a **multiline text** annotation describing the usage directly.
-- `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
-- `Usages` is separate from `Imports`. `Imports` declares internal types from other `CODEMANIFEST` files. `Usages` describes external resources and external types the implementation depends on.
+- `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external resources and how to work with them.
+- `Usages` is separate from `Imports`. `Imports` declares internal types from other `CODEMANIFEST` files. `Usages` describes anything external the implementation depends on.
 - External library types referenced in `Usages` may appear in method signatures, property types, or re-exports. The implementation agent reads `Usages` to understand what external types are available and how to import them.
+- There is **no restriction** on what a usage entry can reference. If the implementation agent needs to know something from outside the package, it belongs in `Usages`.
 
 ### `Annotations` (file-level)
 Optional. Provides structured metadata about the `CODEMANIFEST` file as a whole.
@@ -164,8 +170,8 @@ Annotations: |
 
 Semantics:
 - Placed after `Usages` and before the `---` separator.
-- Contains free-form text metadata about the module or subpackage.
-- Does **not** define contract obligations.
+- Contains global instructions for the agent — requirements for implementation, constraints, architectural expectations, and hints on using practices from `Usages`.
+- Annotations apply to the entire document and shape how the contract should be implemented.
 - Persists through YAML parsing unlike `#` comments.
 
 ### `---` separator
@@ -186,50 +192,50 @@ The empty `{}` body means no contract obligations — the type is passed through
 Example:
 
 ```yaml
+Imports:
+  - Type: Object
+    From: "kotlin"
+
 Usages:
   - requests: |
        External HTTP library. Provides `HTTPError` for error handling.
-
 ---
 
-"->HTTPError": {}
+"->Object": {}
+"->requests.HTTPError": {}
 ```
 
 Semantics:
 - The type must be importable from the package facade.
-- No `dest`, `properties`, or `methods` are defined.
+- No `location`, `properties`, or `methods` are defined.
 - The type is not a contract entity — no implementation obligation exists.
 - The planning agent must ensure the name is available from the package `__init__.py`.
-- Re-exports can reference names from `Imports` (internal) or `Usages` (external). The source of the re-exported name determines how it is imported in the implementation.
-- Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
+- Re-exports can reference names from `Imports` (internal) or `Usages` (external). Re-exporting from `Usages` is allowed but not recommended — prefer re-exporting internal types from `Imports`. The source of the re-exported name determines how it is imported in the implementation.
+- In the case of `Imports`, re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
 ### Entity blocks
 Each top-level entity block defines one facade-level class.
 
 The entity name can be:
-- a **simple class name** — for classes with no constructor parameters or when constructor details are not part of the contract,
 - a **constructor signature** — the full signature including parameters, types, and default values.
 
-Example (simple name):
-
-```yaml
 Example:
-  dest: example.py
-  properties:
-  methods:
-```
-
-Example (constructor signature):
 
 ```yaml
 "Loader(path: str, cls_prefix: str = 'Test', method_prefix: str = 'test_')":
-  dest: loader.py
+  location: loader.py
   annotations: |
     Recursively loads classes from the specified directory and creates instances
     with method names by prefix.
   methods:
     "load() -> cls_instances:list[Any]": |
       Returns a list of loaded class instances.
+
+Example():
+  location: example.py
+  properties:
+    name -> str: |
+      String with the name
 ```
 
 `Loader` or `Example` is the contract entity name. It represents a class with properties and methods.
@@ -243,32 +249,59 @@ The entity name is the full function signature:
 
 ```yaml
 "fibonacci(n: int) -> number:int":
-  dest: tools.py
+  location: tools.py
   annotations: |
     Fibonacci number computation.
 ```
 
 Whether this is implemented as a function or functor depends on the target language characteristics.
 
-`dest` is mandatory. `annotations` is optional.
+`location` is mandatory. `annotations` is optional.
 
 ---
 
 ## Mutation Syntax `Type::`
 
-An entity block may use the mutation syntax to indicate that the entity extends (implements, inherits from) existing types.
+An entity block may use the mutation syntax to indicate that the entity **extends an existing type**. The `::` syntax declares that the new entity builds on top of something that already exists.
 
-Syntax:
+### What is a mutation?
+
+A mutation means: *"this entity is based on an existing type, adding or changing behavior"*. The DSL deliberately does **not** prescribe **how** this relationship is implemented — it only declares that it exists. The implementation agent chooses the appropriate mechanism:
+
+- **Inheritance** — `class Child(Parent):`
+- **Composition with delegation** — a wrapper that holds the original and delegates calls
+- **Interface implementation** — `class Impl(Protocol):`
+- **Monkey-patching** — extending an existing object at runtime
+- **Mixin or trait** — combining behaviors from multiple sources
+- Any other mechanism that achieves the semantic relationship
+
+This is why the term "mutation" is used rather than "inheritance" — the relationship is broader than just class inheritance.
+
+### Reading a mutation chain
+
+Read `::` segments from left to right as layers of extension:
+
+```
+Object::pydantic.BaseModel::SomeClass()
+```
+
+> SomeClass extends BaseModel (from pydantic), which in turn extends Object (from Imports).
+
+The rightmost name before `(` is always the entity being defined. Everything to its left is what it extends.
+
+### Syntax
 
 ```yaml
 "Type1::Type2::ClassName()":
-  dest: file.py
+  location: file.py
   properties:
   methods:
 ```
 
 Each `Type::` segment before the class name declares a mutation:
-- **`TypeName::`** — mutates an existing type. The type may come from `Imports` (internal) or `Usages` (external). The planning agent resolves the type from whichever section declares it.
+- **`TypeName::`** — mutates an existing type. The type may come from `Imports` (internal) or `Usages` (external).
+  - Types from `Imports` use the simple type name (e.g., `Object::`).
+  - Types from `Usages` use a qualified name: `usage.Type::` (e.g., `pydantic.BaseModel::`), where `usage` is the key in the `Usages` section and `Type` is the type name within that usage.
 
 The last segment before `(` is always the class name (with optional constructor signature).
 
@@ -277,25 +310,27 @@ Example:
 ```yaml
 Imports:
   - Type: Object
-    From: "identity.yaml"
+    From: "identity"
 
 Usages:
-  - pydantic: .specs/pydantic.md
+  - pydantic: |
+      Data validation library. Import `BaseModel` for base class inheritance.
+      Import: `from pydantic import BaseModel`
 
 ---
 
-"Object::BaseModel::SomeClass()":
-  dest: some.py
+"Object::pydantic.BaseModel::SomeClass()":
+  location: some.py
   annotations: |
     Class with data model representation.
   properties:
-    name: |
-      `str` -> string with the name.
+    name -> str: |
+      String with the name.
 ```
 
 Here:
-- `Object::` — mutates the `Object` type from `Imports` (internal type from `identity.yaml`),
-- `BaseModel::` — mutates the `BaseModel` type described in `Usages` (external type from pydantic),
+- `Object::` — mutates the `Object` type from `Imports` (internal type from `identity`), using the simple type name,
+- `pydantic.BaseModel::` — mutates the `BaseModel` type from `Usages` (external type from pydantic), using the qualified `usage.Type` syntax,
 - `SomeClass()` — the class name with optional constructor signature.
 
 Semantics:
@@ -303,6 +338,8 @@ Semantics:
 - Multiple `Type::` segments indicate multiple mutations (e.g., multiple inheritance, interface implementation).
 - The class name after the last `::` may include a constructor signature: `Type::ClassName(arg: Type)`.
 - The type is resolved from `Imports` or `Usages` — no prefix distinction is needed.
+- Types from `Imports` use simple names: `TypeName::`. Types from `Usages` use qualified names: `usage.TypeName::`.
+- Every type referenced in `Type::` mutations **must** have a corresponding entry in `Imports` (for internal types) or `Usages` (for external types) that explicitly declares that type.
 
 ---
 
@@ -310,18 +347,18 @@ Semantics:
 
 Each entity block may contain:
 
-- `dest` (mandatory)
+- `location` (mandatory)
 - `annotations` (optional)
 - `properties` (optional)
 - `methods` (optional)
 
-### `dest`
-`dest` is mandatory.
+### `location`
+`location` is mandatory.
 
 Example:
 
 ```yaml
-dest: example.py
+location: example.py
 ```
 
 Semantics:
@@ -329,9 +366,14 @@ Semantics:
 - the entity must be implemented in that file,
 - the entity must also be available from the package facade.
 
-This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
+This means `location` defines a **location obligation** and the contract defines a **facade obligation**.
 
-`dest` is relative to the `CODEMANIFEST` file that defines the entity.
+`location` is relative to the `CODEMANIFEST` file that defines the entity.
+
+Restrictions:
+- The file must be at the same directory level as the `CODEMANIFEST` file.
+- The file must include its extension (e.g., `loader.py`, not `loader`).
+- The path must not navigate up (`..`) or descend into subdirectories.
 
 ### `annotations`
 `annotations` is optional. Provides structured metadata about the entity that persists through YAML parsing.
@@ -340,32 +382,32 @@ Example:
 
 ```yaml
 "Loader(path: str)":
-  dest: loader.py
+  location: loader.py
   annotations: |
     Description of the entity.
     May include notes about source, design decisions, or caveats.
 ```
 
 Semantics:
-- Contains free-form text metadata about the entity.
-- Does **not** define contract obligations — no implementation requirement is derived from annotations.
+- Contains prescriptive instructions for the implementation agent — what is expected on the output, how the API should behave, which practices to apply, which constraints to follow.
+- Annotations define behavioral requirements that the implementation must satisfy.
 - Persists through YAML parsing unlike `#` comments.
-- May describe: source of the entity, extraction notes, design rationale, known limitations.
-- Planning agents should use annotations as context hints but must not treat annotation text as contract requirements.
+- May reference practices from `Usages` to guide the implementation approach.
+- Planning agents must treat annotation text as requirements that shape the generated code.
 
 ### `properties`
 Properties describe facade-visible data access of the entity.
 
-Properties use a simplified mapping format — the key is the property name, the value is a description containing the type information inline.
+Properties use a mapping format — the key contains the property name and type, the value is a description.
 
 Example:
 
 ```yaml
 properties:
-  name: |
-    `str` -> string with the name.
-  items: |
-    `list[Item]` -> list of items in the collection.
+  name -> str: |
+    String with the name.
+  items -> list[Item]: |
+    List of items in the collection.
 ```
 
 Properties section may be omitted when the entity has no facade-visible properties.
@@ -373,20 +415,18 @@ Properties section may be omitted when the entity has no facade-visible properti
 #### Property format
 
 ```text
-PropertyName: |
-  `Type` -> description text
+PropertyName -> Type: |
+  Description text
 ```
 
 Semantics:
-- `PropertyName` = actual property name in code (left side of the mapping key)
-- The value is a multiline text containing:
-  - the type in backticks,
-  - a `->` separator,
-  - a human-readable description
+- `PropertyName` = actual property name in code (left side of the mapping key, before `->`)
+- `Type` = the property type (right side of the mapping key, after `->`)
+- The value is a multiline text containing a human-readable description
 
 Important:
-- the key is the real code-facing property name,
-- the type and description are in the value, not structured into the key,
+- the key contains both the real code-facing property name and its type,
+- the value contains the human-readable description,
 - this format is language-agnostic and easy to read.
 
 #### What counts as a property
@@ -400,7 +440,6 @@ From the facade perspective these are indistinguishable — a consumer cannot te
 #### Property description
 The multiline text under the property is mandatory.
 It describes:
-- the type of the property (in backticks),
 - what the property represents,
 - constraints,
 - behavior expectations where relevant.
@@ -485,7 +524,7 @@ some_package/
 
 Rules:
 - Each `CODEMANIFEST` describes entities and functions at its level only.
-- `dest` paths are relative to the `CODEMANIFEST` file location.
+- `location` paths are relative to the `CODEMANIFEST` file location.
 - A parent `CODEMANIFEST` may re-export entities from child `CODEMANIFEST` files using `->` re-exports.
 - A child `CODEMANIFEST` does not need to reference its parent.
 
@@ -535,7 +574,7 @@ The contract implies the following:
 
 1. The package facade is authoritative.
 2. Contract entities must remain available from the facade.
-3. Each contract entity must be implemented in its declared `dest`.
+3. Each contract entity must be implemented in its declared `location`.
 4. Internal decomposition is allowed.
 5. Internal decomposition must not erase or distort the contract.
 6. Imported contract types define internal dependencies (from other `CODEMANIFEST` files in the same project). External dependencies are described in `Usages`.
@@ -568,8 +607,8 @@ A planning agent should use this DSL to answer:
 A single `CODEMANIFEST` may describe multiple entities, functions, and re-exports.
 
 Entities may:
-- share a single `dest`,
-- point to different `dest` files,
+- share a single `location`,
+- point to different `location` files,
 - depend on imported contract types,
 - mutate other types via `Type::` syntax,
 - belong to the same facade surface.

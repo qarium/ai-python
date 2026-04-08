@@ -53,7 +53,7 @@ The plan **must** follow this structure for ralphex compatibility:
 Each task must be:
 - **Atomic** — completable by an AI agent in a single Claude Code session
 - **Self-contained** — includes all context needed to implement without reading other tasks
-- **Ordered** — infrastructure before entities, entities before tests, simple before complex
+- **Ordered** — per-package: infrastructure before entities, entities before tests; simple before complex
 - **Verifiable** — has clear completion criteria and validation commands
 
 ### Ralphex execution protocol
@@ -79,16 +79,16 @@ When ralphex executes a task, the AI agent follows this protocol:
 - Contract entities may be classes or standalone functions.
 - Entity blocks define classes with `properties` and `methods`.
 - Standalone function blocks are top-level blocks without `properties` or `methods` — their name is the full function signature. Whether implemented as a function or functor depends on the target language.
-- Entity names may contain constructor signatures. Constructor parameters are documentation for the implementation agent — the entity as a whole is the contract unit, not individual parameters.
+- Entity names use constructor signatures (e.g., `ClassName()`, `ClassName(arg: Type)`). Constructor parameters are documentation for the implementation agent — the entity as a whole is the contract unit, not individual parameters.
 - All contract entities must be preserved in the plan.
 - Contract entities must not be silently removed, collapsed, renamed, or replaced with unrelated abstractions.
-- Entities may declare interface mutations via `Type::` syntax (e.g., `Object::Data::ClassName()`). Each `Type::` segment means the entity mutates an existing interface — how is up to the implementation agent.
+- Entities may declare interface mutations via `Type::` syntax (e.g., `Object::pydantic.BaseModel::ClassName()`). Each `Type::` segment means the entity extends an existing type. Mutation does **not** prescribe a specific mechanism (inheritance, composition, monkey-patching, etc.) — that is up to the implementation agent. See `dsl-spec.md` → *Mutation Syntax `Type::`* for the full conceptual explanation and reading rules.
 
 ### Location model
-- Each contract entity has a `dest`.
-- `dest` defines the required file inside the package where the entity must be implemented.
+- Each contract entity has a `location`.
+- `location` defines the required file inside the package where the entity must be implemented.
 - This creates two simultaneous obligations:
-  1. the entity must be implemented in the required `dest`,
+  1. the entity must be implemented in the required `location`,
   2. the entity must be available from the package facade.
 
 ---
@@ -112,7 +112,7 @@ You must not plan:
 - expansion of the system boundary beyond the current package,
 - replacement of contract entities with internal-only abstractions,
 - violation of facade accessibility requirements,
-- ignoring `dest`.
+- ignoring `location`.
 
 ---
 
@@ -170,6 +170,8 @@ Any architectural choice not explicitly stated in the contract must be listed as
 ## DSL Compilation Rules
 
 Read the detailed syntax rules from `dsl-spec.md`.
+Follow project conventions from `conventions.md`.
+Refer to `example.md` for a complete DSL-to-plan compilation example.
 
 ### Compilation mapping
 
@@ -181,24 +183,34 @@ The DSL compiles into plan tasks as follows:
 | `Usages` | Context section with implementation guidance for the AI agent, including external library types |
 | `Annotations` | Context hints embedded in task descriptions |
 | `->Re-exports` | Task: ensure name importable from package `__init__.py` |
-| `Entity` with `properties` | Task: create entity in `dest`, implement properties |
-| `Entity` with `methods` | Task: implement methods in `dest` with behavior from descriptions |
-| `Standalone function` | Task: implement function in `dest` |
+| `Entity` with `properties` | Task: create entity in `location`, implement properties |
+| `Entity` with `methods` | Task: implement methods in `location` with behavior from descriptions |
+| `Standalone function` | Task: implement function in `location` |
 | `Type::` mutation | Task: implement interface mutation mechanism |
 | Method/property descriptions | Reflected in task implementation instructions |
 
 ### Task ordering principles
-Tasks must be ordered for sequential AI execution:
+Tasks must be ordered **per-package**, not globally. Each package is completed (coding + testing) before moving to the next.
+
+Within a single package, coding tasks follow this order:
 
 1. **Infrastructure tasks** — package structure, `__init__.py`, re-exports
-2. **Entity skeleton tasks** — create classes/functions in correct `dest` files
+2. **Entity skeleton tasks** — create classes/functions in correct `location` files
 3. **Property implementation tasks** — implement facade-visible properties
 4. **Method implementation tasks** — implement facade-visible methods with described behavior
 5. **Interface mutation tasks** — implement `Type::` mutation declarations
-6. **Contract test tasks** — facade availability, API shape, behavior tests
-7. **Integration test tasks** — cross-entity, edge case, negative scenario tests
 
-Entities sharing the same `dest` should be grouped in the same task when possible.
+**Per-package test placement rule**: Contract test tasks for a package must be placed **immediately after the last coding task** for that package, not deferred to the end of the plan. This ensures each package is fully validated before the next package's work begins.
+
+6. **Contract test tasks** — facade availability, API shape, behavior tests (for this package)
+7. **Integration test tasks** — cross-entity, edge case, negative scenario tests (for this package)
+
+When the plan covers multiple packages (e.g., a package with subpackages):
+- Process leaf packages first (packages with no child dependencies), then parent packages
+- Complete all coding tasks + test tasks for one package before starting the next
+- Respect dependency order: if package A imports from package B, complete B first
+
+Entities sharing the same `location` should be grouped in the same task when possible.
 
 ### Descriptions are mandatory
 Descriptions attached to properties, methods, and functions are not comments.
@@ -218,30 +230,32 @@ Do not locally redefine imported contract types unless the contract explicitly r
 Include import context in task descriptions.
 
 ### Usages are implementation context and external dependencies
-`Usages` describes external dependencies, external types, patterns, and conventions the implementation relies on.
-This includes third-party library types used in signatures (e.g., `requests.HTTPError`, `pydantic.BaseModel`).
+`Usages` is a general-purpose section for attaching any external knowledge the implementation agent needs. It is not limited to libraries — it can reference external code in other languages, build instructions, protocols, conventions, specs, or any resource the agent should be aware of.
+This includes third-party library types used in signatures (e.g., `requests.HTTPError`, `pydantic.BaseModel`), but also specs explaining how to call a Rust/Go/C++ module, gRPC API definitions, or any external documentation.
 They provide context for the implementation agent — what each resource does and how to use it.
-Include usage context in the plan so the AI implementation agent understands available tools and how to import external types.
+Include usage context in the plan so the AI implementation agent understands available tools and how to work with them.
 
 ### Re-exports are facade obligations
-Re-export blocks (`->Name: {}`) define names that must be available on the facade without local implementation.
+Re-export blocks (`->Name: {}` for internal types, `->usage.Type: {}` for external types) define names that must be available on the facade without local implementation.
 The planning agent must ensure each re-exported name is importable from the package `__init__.py`.
-Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
+Re-exports can reference names from `Imports` (internal) or `Usages` (external). Re-exporting from `Usages` is allowed but not recommended — prefer re-exporting internal types from `Imports`. In the case of `Imports`, re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
+
+When planning re-exports from child CODEMANIFEST files, import specific objects — not whole subpackages or modules. For example, plan `from package.http import HTTPClient`, not `import package.http`. The DSL does not have a `Module` concept; every facade-level name is an individual entity or re-export.
 
 ### Mutation declarations are interface obligations
-The `Type::` syntax in entity names declares interface mutations.
-- `TypeName::` — mutates an existing type. The type is resolved from `Imports` (internal) or `Usages` (external) — no prefix distinction needed.
-- Multiple `Type::` segments indicate multiple mutations.
+The `Type::` syntax in entity names declares interface mutations — the entity extends an existing type. The mechanism (inheritance, composition, etc.) is not prescribed by the DSL. See `dsl-spec.md` → *Mutation Syntax `Type::`* for the conceptual explanation.
+- `TypeName::` — mutates an existing type. Types from `Imports` use simple names (e.g., `Object::`). Types from `Usages` use qualified names: `usage.Type::` (e.g., `pydantic.BaseModel::`).
+- Multiple `Type::` segments indicate multiple mutations. Read left to right as layers of extension: `A::B::Cls()` means Cls extends B which extends A.
 The planning agent must create tasks for implementing the mutation mechanism.
 
-### Annotations are context hints
-`annotations` at file-level, entity-level, or function-level provide metadata and context.
-They do not define contract obligations.
-Planning agents should embed annotations as context in task descriptions.
+### Annotations are prescriptive instructions
+`annotations` at file-level, entity-level, or function-level provide prescriptive instructions for the implementation agent — what is expected, how the API should behave, which practices to apply, which constraints to follow.
+They define behavioral requirements that the implementation must satisfy.
+Planning agents must embed annotations as requirements in task descriptions so the AI implementation agent treats them as implementation obligations.
 
 ### Standalone functions are contract entities
 Top-level blocks without `properties` or `methods` define standalone facade-level functions.
-Their name is the full function signature. They have the same contract weight as entity methods — same obligations for `dest` and facade availability.
+Their name is the full function signature. They have the same contract weight as entity methods — same obligations for `location` and facade availability.
 
 ---
 
@@ -252,6 +266,8 @@ The final plan must be **ralphex-executable**.
 ### Task structure
 Each task follows this structure:
 
+#### Coding task (implementation, infrastructure, entity creation)
+
 ```markdown
 ### Task N: <descriptive title>
 
@@ -261,6 +277,19 @@ Each task follows this structure:
 - [ ] <implementation step 2 — specific, actionable>
 - [ ] <implementation step N>
 - [ ] Run validation: `<specific validation command>`
+- [ ] Run existing tests to verify no regressions: `pytest tests/ -x` (skip this step if no test files exist yet)
+- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass
+```
+
+#### Test task (writing tests)
+
+```markdown
+### Task N: Contract tests for <entity>
+
+<Context: what contract aspects are being tested>
+
+- [ ] <test creation steps>
+- [ ] Run validation: `pytest tests/test_<entity>.py -v`
 ```
 
 ### Task requirements
@@ -272,6 +301,15 @@ Each task must:
 - identify contract entities covered
 - include at least one validation checkpoint
 - be completable in a single Claude Code session
+
+### Test-after-coding rule
+Every **coding task** (implementation, infrastructure, entity creation, method implementation) must include as its final steps:
+1. Run existing tests (`pytest tests/ -x`) to verify no regressions — skip if no test files exist yet
+2. If any tests fail, fix the code written in **this task** (not the tests) and re-run until they pass
+
+This is part of the same task, not a separate task. The AI agent must complete implementation and verify tests within a single context window.
+
+Test-writing tasks do not include this step — they create the tests themselves.
 
 ### Anti-patterns to avoid
 - Vague tasks like "implement X" without specific steps
@@ -287,7 +325,7 @@ Each task must:
 Testing is mandatory and integrated into task steps.
 
 ### Test task design
-Create dedicated test tasks after implementation tasks:
+Create dedicated test tasks immediately after the last coding task **for the same package**. Do not defer all test tasks to the end of the plan — each package's tests must follow its coding tasks:
 
 ```markdown
 ### Task N: Contract tests for <Entity>
@@ -379,7 +417,7 @@ If the project has no existing code:
 
 A good plan:
 - preserves every contract entity,
-- respects every `dest`,
+- respects every `location`,
 - preserves facade availability,
 - reflects semantic requirements from descriptions,
 - stays within the current package boundary,
@@ -391,7 +429,7 @@ A good plan:
 - each task is self-contained with sufficient context for AI execution.
 
 A bad plan:
-- ignores `dest`,
+- ignores `location`,
 - invents new packages,
 - blurs public and internal boundaries,
 - treats descriptions as optional,
@@ -409,7 +447,7 @@ A bad plan:
 Before finalizing the answer, verify:
 
 1. Did I include every contract entity (classes and standalone functions)?
-2. Did I preserve every `dest` obligation?
+2. Did I preserve every `location` obligation?
 3. Did I preserve facade availability requirements?
 4. Did I include semantic requirements from descriptions in task instructions?
 5. Did I separate facts, assumptions, and open questions?
@@ -424,11 +462,12 @@ Before finalizing the answer, verify:
 14. Did I include re-export obligations in the plan?
 15. Did I include `Usages` context for the implementation agent?
 16. Did I process all hierarchical `CODEMANIFEST` files (not just the root)?
-17. Did I consider `annotations` as context hints?
+17. Did I treat `annotations` as prescriptive instructions for the implementation agent?
 18. Did I process all `Type::` mutation declarations and plan interface mutation obligations?
 19. Did I treat constructor parameters as documentation, not individual contract obligations?
-20. Are tasks ordered correctly (infrastructure → entities → tests)?
+20. Are tasks ordered correctly per-package (coding tasks → tests for each package, not all tests at the end)?
 21. Does the `## Validation Commands` section include all necessary verification commands?
+22. Does every coding task include the test-run steps at the end (run existing tests, fix if failed)?
 
 If any answer is "no", revise the plan before returning it.
 
