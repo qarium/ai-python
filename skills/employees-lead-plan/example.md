@@ -1,10 +1,10 @@
 # Example: DSL-to-Ralphex Plan Compilation
 
-This example shows how a `CODEMANIFEST.yml` DSL is compiled into a ralphex-compatible execution plan.
+This example shows how a `CODEMANIFEST` DSL is compiled into a ralphex-compatible execution plan.
 
 ---
 
-## Input: CODEMANIFEST.yml
+## Input: CODEMANIFEST
 
 ```yaml
 Imports:

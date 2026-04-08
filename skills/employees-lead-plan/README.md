@@ -1,18 +1,18 @@
 # Agent Skill Bundle: DSL-to-Ralphex Planning
 
-This bundle compiles `CODEMANIFEST.yml` DSL into ralphex-compatible execution plans.
+This bundle compiles `CODEMANIFEST` DSL into ralphex-compatible execution plans.
 
 ## Files
 
 - `SKILL.md` — main planning skill prompt (DSL-to-ralphex compiler)
-- `dsl-spec.md` — DSL specification for `CODEMANIFEST.yml`
+- `dsl-spec.md` — DSL specification for `CODEMANIFEST`
 - `output-template.md` — ralphex-compatible plan template
 - `conventions.md` — project conventions + ralphex task design rules
 - `example.md` — DSL-to-plan compilation example
 
 ## How it works
 
-1. **Input**: `CODEMANIFEST.yml` DSL defining package contract surface
+1. **Input**: `CODEMANIFEST` DSL defining package contract surface
 2. **Processing**: Contract extraction, gap analysis, task decomposition
 3. **Output**: Ralphex-compatible markdown plan in `docs/plans/<feature>.md`
 
@@ -34,7 +34,7 @@ See: https://github.com/umputun/ralphex
 
 ## Layering
 
-1. Contract (`CODEMANIFEST.yml`)
+1. Contract (`CODEMANIFEST`)
 2. DSL spec (`dsl-spec.md`)
 3. Planning skill (`SKILL.md`)
 4. Output schema (`output-template.md`)

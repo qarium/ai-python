@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Analyze an existing Python package and produce `CODEMANIFEST.yml` contract files following the DSL defined in `../employees-lead-plan/dsl-spec.md`.
+Analyze an existing Python package and produce `CODEMANIFEST` contract files following the DSL defined in `../employees-lead-plan/dsl-spec.md`.
 
 You do **not** write implementation code.
-You do **not** create any files other than `CODEMANIFEST.yml`.
+You do **not** create any files other than `CODEMANIFEST`.
 You **extract** the public contract surface from working source code.
 
 ---
@@ -27,10 +27,10 @@ The source path must point to a Python package directory (containing `__init__.p
 
 ## Output
 
-One or more `CODEMANIFEST.yml` files:
+One or more `CODEMANIFEST` files:
 
-- **Package root** `CODEMANIFEST.yml` — placed inside the target package directory (e.g., `some_package/CODEMANIFEST.yml`).
-- **Subpackage** `CODEMANIFEST.yml` files — placed inside subpackage directories that have their own facade surface (e.g., `some_package/utils/CODEMANIFEST.yml`).
+- **Package root** `CODEMANIFEST` — placed inside the target package directory (e.g., `some_package/CODEMANIFEST`).
+- **Subpackage** `CODEMANIFEST` files — placed inside subpackage directories that have their own facade surface (e.g., `some_package/utils/CODEMANIFEST`).
 
 No other files are created. The `plan` skill is responsible for creating the directory structure and implementation files.
 
@@ -60,7 +60,7 @@ All output must conform to the DSL specification defined in `../employees-lead-p
 5. Build the **facade set**: entity names that are publicly available from the package.
 6. For each subpackage, build a **subpackage facade set**.
 
-Entities NOT in the facade set are considered **internal** and must not appear in `CODEMANIFEST.yml`.
+Entities NOT in the facade set are considered **internal** and must not appear in `CODEMANIFEST`.
 
 ### Phase 3: Dependency Detection
 
@@ -69,7 +69,7 @@ Analyze all facade entities to detect external dependencies.
 #### Import detection
 For each type used in signatures that is not locally defined:
 - Determine whether it comes from an external Python package (e.g., `requests.Response`, `requests.HTTPError`).
-- Determine whether it comes from another `CODEMANIFEST.yml` contract (e.g., a type defined in a sibling package).
+- Determine whether it comes from another `CODEMANIFEST` contract (e.g., a type defined in a sibling package).
 - Record each as an `Imports` entry with `Type` or `Module` kind.
 
 #### Library detection
@@ -84,7 +84,7 @@ For each entity in the facade that is **not locally defined** but imported from 
 - Record as a `"->Name": {}` re-export block.
 - Also record the corresponding `Imports` entry for the type.
 
-Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST.yml`. Never create a re-export that references a sibling or parent level.
+Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`. Never create a re-export that references a sibling or parent level.
 
 ### Phase 4: Entity Extraction
 
@@ -118,7 +118,7 @@ Descriptions are **mandatory** in the DSL.
 
 ### Language
 
-All descriptions, annotations, and text content in `CODEMANIFEST.yml` files must be written in English.
+All descriptions, annotations, and text content in `CODEMANIFEST` files must be written in English.
 When the source code contains non-English docstrings, translate the description to English
 and mark it as inferred.
 
@@ -150,13 +150,13 @@ Standalone function blocks use `annotations` for inferred descriptions:
 ### Phase 6: Dest Mapping
 
 For each extracted entity:
-- `dest` is the file path **relative to the `CODEMANIFEST.yml` file location**.
-- For the package root `CODEMANIFEST.yml`: strip the leading package name directory.
-- For subpackage `CODEMANIFEST.yml` files: `dest` is relative to the subpackage directory.
+- `dest` is the file path **relative to the `CODEMANIFEST` file location**.
+- For the package root `CODEMANIFEST`: strip the leading package name directory.
+- For subpackage `CODEMANIFEST` files: `dest` is relative to the subpackage directory.
 
 Examples:
-- Package root `CODEMANIFEST.yml`: package `some_package/`, file `some_package/http/client.py` → `dest: http/client.py`
-- Subpackage `CODEMANIFEST.yml`: subpackage `some_package/utils/`, file `some_package/utils/url.py` → `dest: url.py`
+- Package root `CODEMANIFEST`: package `some_package/`, file `some_package/http/client.py` → `dest: http/client.py`
+- Subpackage `CODEMANIFEST`: subpackage `some_package/utils/`, file `some_package/utils/url.py` → `dest: url.py`
 
 Multiple entities in the same file share the same `dest`. This is valid per the DSL spec.
 
@@ -204,26 +204,26 @@ Same as method format but as a top-level block without `properties` or `methods`
 
 ### Phase 8: Hierarchical Decomposition
 
-Determine which subpackages need their own `CODEMANIFEST.yml` files.
+Determine which subpackages need their own `CODEMANIFEST` files.
 
 Rules:
-- A subpackage needs its own `CODEMANIFEST.yml` if it contains facade entities or standalone functions.
-- The subpackage `CODEMANIFEST.yml` describes entities and functions at its level only.
-- The parent `CODEMANIFEST.yml` uses `Module` imports and `->` re-exports to make the subpackage available on the top-level facade.
+- A subpackage needs its own `CODEMANIFEST` if it contains facade entities or standalone functions.
+- The subpackage `CODEMANIFEST` describes entities and functions at its level only.
+- The parent `CODEMANIFEST` uses `Module` imports and `->` re-exports to make the subpackage available on the top-level facade.
 
 Example decomposition:
 ```
 some_package/
-├── CODEMANIFEST.yml              ← entities + Module import for url + re-export
+├── CODEMANIFEST              ← entities + Module import for url + re-export
 ├── http/
-│   ├── CODEMANIFEST.yml          ← HTTP entities (if applicable)
+│   ├── CODEMANIFEST          ← HTTP entities (if applicable)
 │   └── ...
 └── utils/
-    ├── CODEMANIFEST.yml          ← function blocks for join, add_subdomain_to_url
+    ├── CODEMANIFEST          ← function blocks for join, add_subdomain_to_url
     └── ...
 ```
 
-Parent `CODEMANIFEST.yml`:
+Parent `CODEMANIFEST`:
 ```yaml
 Imports:
   - Module: url
@@ -232,7 +232,7 @@ Imports:
 "->url": {}
 ```
 
-Subpackage `CODEMANIFEST.yml` (`some_package/utils/CODEMANIFEST.yml`):
+Subpackage `CODEMANIFEST` (`some_package/utils/CODEMANIFEST`):
 ```yaml
 "join(*parts: str) -> joined:str":
   dest: url.py
@@ -242,7 +242,7 @@ Subpackage `CODEMANIFEST.yml` (`some_package/utils/CODEMANIFEST.yml`):
 
 ### Phase 9: Assembly
 
-Assemble each `CODEMANIFEST.yml` file with the following structure (in order):
+Assemble each `CODEMANIFEST` file with the following structure (in order):
 
 ```yaml
 Imports:
@@ -293,7 +293,7 @@ Ordering rules:
 
 ## What NOT to Extract
 
-Do **not** include in `CODEMANIFEST.yml`:
+Do **not** include in `CODEMANIFEST`:
 - Private methods (starting with `_`, except `__call__`)
 - Private properties or private instance attributes (starting with `_`)
 - `__init__` parameters as such — only the resulting public instance attributes
@@ -316,15 +316,15 @@ Mark all inferred descriptions explicitly.
 
 ## Output Presentation
 
-After assembling all `CODEMANIFEST.yml` files and before writing:
+After assembling all `CODEMANIFEST` files and before writing:
 
-1. Show each proposed `CODEMANIFEST.yml` content with its file path.
+1. Show each proposed `CODEMANIFEST` content with its file path.
 2. Show a summary table of all extracted entities across all files:
 
 | File | Entity | Type | dest | Properties | Methods/Functions | Description source |
 |------|--------|------|------|-----------|-------------------|--------------------|
-| CODEMANIFEST.yml | ... | class | ... | N | M | docstring / inferred |
-| utils/CODEMANIFEST.yml | join | function | url.py | - | - | docstring / inferred |
+| CODEMANIFEST | ... | class | ... | N | M | docstring / inferred |
+| utils/CODEMANIFEST | join | function | url.py | - | - | docstring / inferred |
 
 3. Show a summary of detected dependencies:
 
@@ -341,15 +341,15 @@ After assembling all `CODEMANIFEST.yml` files and before writing:
    - Methods with missing return type annotations.
    - Descriptions that were inferred rather than extracted.
    - Public instance attributes treated as properties.
-   - Subpackages that do not need their own `CODEMANIFEST.yml`.
+   - Subpackages that do not need their own `CODEMANIFEST`.
 
-5. Ask the user to review and confirm before writing `CODEMANIFEST.yml` files.
+5. Ask the user to review and confirm before writing `CODEMANIFEST` files.
 
 ---
 
 ## Validation
 
-Before finalizing each `CODEMANIFEST.yml`, verify:
+Before finalizing each `CODEMANIFEST`, verify:
 
 1. Every entity listed is available from the package facade (importable via `__init__.py`).
 2. Every `dest` points to an actual source file.
@@ -360,7 +360,7 @@ Before finalizing each `CODEMANIFEST.yml`, verify:
 7. No private entity is included unless explicitly requested.
 8. Every re-export has a corresponding `Imports` entry.
 9. Every `Usages` entry has either a spec path or annotation text.
-10. `dest` paths are relative to the `CODEMANIFEST.yml` file location (not absolute).
+10. `dest` paths are relative to the `CODEMANIFEST` file location (not absolute).
 11. The YAML is syntactically valid.
 
 ---
@@ -375,8 +375,8 @@ A good extraction:
 - clearly distinguishes extracted from inferred information,
 - correctly identifies re-exports vs contract entities,
 - generates appropriate `Imports`, `Usages`, and re-export sections,
-- produces hierarchical `CODEMANIFEST.yml` files for subpackages with their own facade,
-- only creates `CODEMANIFEST.yml` files — no other files.
+- produces hierarchical `CODEMANIFEST` files for subpackages with their own facade,
+- only creates `CODEMANIFEST` files — no other files.
 
 A bad extraction:
 - contains non-English text in descriptions, annotations, or labels,
@@ -387,9 +387,9 @@ A bad extraction:
 - omits descriptions,
 - fails to detect the facade boundary,
 - treats re-exported types as contract entities instead of re-exports,
-- creates files other than `CODEMANIFEST.yml`,
+- creates files other than `CODEMANIFEST`,
 - misses subpackage contracts,
-- mixes parent and child entities in a single `CODEMANIFEST.yml`.
+- mixes parent and child entities in a single `CODEMANIFEST`.
 
 ---
 
@@ -403,17 +403,17 @@ Before returning the result, verify:
 4. Did I include public instance attributes (not just `@property`)?
 5. Did I preserve exact type annotations?
 6. Did I provide descriptions for every property, method, and function?
-7. Are all `dest` paths relative to the correct `CODEMANIFEST.yml` file location?
+7. Are all `dest` paths relative to the correct `CODEMANIFEST` file location?
 8. Did I exclude private/internal entities?
 9. Did I handle re-exports correctly (`->Name: {}` with corresponding `Imports`)?
 10. Did I clearly mark inferred descriptions?
 11. Is the YAML syntactically valid?
-12. Did I create **only** `CODEMANIFEST.yml` files — no other files?
+12. Did I create **only** `CODEMANIFEST` files — no other files?
 13. Did I generate `Imports` for all external types used in signatures?
 14. Did I generate `Usages` for external package dependencies?
-15. Did I produce separate `CODEMANIFEST.yml` files for subpackages that have their own facade?
+15. Did I produce separate `CODEMANIFEST` files for subpackages that have their own facade?
 16. Did I include `annotations` where appropriate (file-level, entity-level, function-level)?
-17. Is all text content in `CODEMANIFEST.yml` files written in English?
+17. Is all text content in `CODEMANIFEST` files written in English?
 18. Did I detect `[Type]` extends for parent classes correctly?
 19. Did I use simple entity names where no constructor parameters exist?
 

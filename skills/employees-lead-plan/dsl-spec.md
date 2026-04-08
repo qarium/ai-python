@@ -1,4 +1,4 @@
-# DSL Specification for `CODEMANIFEST.yml`
+# DSL Specification for `CODEMANIFEST`
 
 ## Purpose
 
@@ -21,12 +21,12 @@ to help AI models navigate the contract more effectively.
 
 ## High-Level Model
 
-A package may contain `CODEMANIFEST.yml` files at different levels of the directory tree.
+A package may contain `CODEMANIFEST` files at different levels of the directory tree.
 
-- **Package root** `CODEMANIFEST.yml` — defines the top-level facade contract.
-- **Subpackage** `CODEMANIFEST.yml` — defines the contract for a subpackage.
+- **Package root** `CODEMANIFEST` — defines the top-level facade contract.
+- **Subpackage** `CODEMANIFEST` — defines the contract for a subpackage.
 
-Each `CODEMANIFEST.yml` describes the entities and functions implemented at its level.
+Each `CODEMANIFEST` describes the entities and functions implemented at its level.
 
 The package is treated as an isolated unit.
 Its external interaction is defined through the contract.
@@ -86,7 +86,7 @@ Annotations: |
     Fibonacci number computation.
 ```
 
-A single `CODEMANIFEST.yml` may contain:
+A single `CODEMANIFEST` may contain:
 - an `Imports` section (external types and modules used in signatures),
 - a `Usages` section (external dependencies, patterns, conventions),
 - file-level `Annotations` (optional, describes the module or subpackage as a whole),
@@ -99,7 +99,7 @@ A single `CODEMANIFEST.yml` may contain:
 ## Top-Level Sections
 
 ### `Imports`
-Defines external types and modules used in the contract — literally imports from other `CODEMANIFEST.yml` files or external packages.
+Defines external types and modules used in the contract — literally imports from other `CODEMANIFEST` files or external packages.
 
 Example:
 
@@ -117,9 +117,9 @@ Semantics:
 - **`Type` import**: a type used in signatures but not locally defined.
   - `Type` is the external type name.
   - `From` is the source:
-    - a `CODEMANIFEST.yml` path for DSL contract dependencies (relative to working directory),
+    - a `CODEMANIFEST` path for DSL contract dependencies (relative to working directory),
     - a Python package name for external library types (e.g., `"requests"`).
-- **`Module` import**: a subpackage or module whose contract is defined in another `CODEMANIFEST.yml`.
+- **`Module` import**: a subpackage or module whose contract is defined in another `CODEMANIFEST`.
   - `Module` is the module/subpackage name.
   - `From` is the Python import path to the parent package (e.g., `"some_pkg.utils"`).
 - Imported types are external dependencies.
@@ -146,13 +146,13 @@ Usages:
 Semantics:
 - Each entry key is the **usage name** (library name, pattern name, convention name).
 - The value is either:
-  - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST.yml` file location),
+  - a **path** to a spec file with detailed documentation (relative to the `CODEMANIFEST` file location),
   - a **multiline text** annotation describing the usage directly.
 - `Usages` provides **context only** — it does not create facade entities or import obligations. It informs the implementation agent about external dependencies and how to work with them.
 - `Usages` is separate from `Imports`. `Imports` declares types and modules used in contract signatures. `Usages` describes external resources the implementation depends on.
 
 ### `Annotations` (file-level)
-Optional. Provides structured metadata about the `CODEMANIFEST.yml` file as a whole.
+Optional. Provides structured metadata about the `CODEMANIFEST` file as a whole.
 
 Example:
 
@@ -203,7 +203,7 @@ Semantics:
 - No `dest`, `properties`, or `methods` are defined.
 - The type or module is not a contract entity — no implementation obligation exists.
 - The planning agent must ensure the name is available from the package `__init__.py`.
-- Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST.yml`.
+- Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
 ### Entity blocks
 Each top-level entity block defines one facade-level class.
@@ -332,7 +332,7 @@ Semantics:
 
 This means `dest` defines a **location obligation** and the contract defines a **facade obligation**.
 
-`dest` is relative to the `CODEMANIFEST.yml` file that defines the entity.
+`dest` is relative to the `CODEMANIFEST` file that defines the entity.
 
 ### `annotations`
 `annotations` is optional. Provides structured metadata about the entity that persists through YAML parsing.
@@ -469,26 +469,26 @@ It must be reflected in:
 
 ## Hierarchical Contracts
 
-A package may have `CODEMANIFEST.yml` files at multiple levels.
+A package may have `CODEMANIFEST` files at multiple levels.
 
 Example:
 
 ```
 some_package/
-├── CODEMANIFEST.yml              ← top-level facade: re-exports, top-level entities
+├── CODEMANIFEST              ← top-level facade: re-exports, top-level entities
 ├── http/
-│   ├── CODEMANIFEST.yml          ← HTTP entities: HTTPClient, HTTPSession, etc.
+│   ├── CODEMANIFEST          ← HTTP entities: HTTPClient, HTTPSession, etc.
 │   └── ...
 └── utils/
-    ├── CODEMANIFEST.yml          ← utility functions: join, add_subdomain_to_url
+    ├── CODEMANIFEST          ← utility functions: join, add_subdomain_to_url
     └── ...
 ```
 
 Rules:
-- Each `CODEMANIFEST.yml` describes entities and functions at its level only.
-- `dest` paths are relative to the `CODEMANIFEST.yml` file location.
-- A parent `CODEMANIFEST.yml` may import and re-export entities from child `CODEMANIFEST.yml` files using `Module` imports and `->` re-exports.
-- A child `CODEMANIFEST.yml` does not need to reference its parent.
+- Each `CODEMANIFEST` describes entities and functions at its level only.
+- `dest` paths are relative to the `CODEMANIFEST` file location.
+- A parent `CODEMANIFEST` may import and re-export entities from child `CODEMANIFEST` files using `Module` imports and `->` re-exports.
+- A child `CODEMANIFEST` does not need to reference its parent.
 
 ---
 
@@ -500,7 +500,7 @@ Facade exposure may happen at different levels:
 - **primary facade** — available from the top-level `__init__.py`,
 - **secondary facade** — available from a subpackage `__init__.py` (e.g., `package.submodule`).
 
-Every entity defined in `CODEMANIFEST.yml` (including re-exports) must be available from at least one facade level.
+Every entity defined in `CODEMANIFEST` (including re-exports) must be available from at least one facade level.
 
 The contract does not currently distinguish primary from secondary facade. Both are valid facade exposure. The planning agent must verify that each entity is importable from the declared facade location.
 
@@ -542,7 +542,7 @@ The contract implies the following:
 7. Re-exported types and modules must be available from the facade but carry no implementation obligation.
 8. Re-exports can only embed entities from lower filesystem levels.
 9. Package boundaries are user-defined and must be preserved.
-10. Subpackage contracts are independent — each `CODEMANIFEST.yml` owns its level.
+10. Subpackage contracts are independent — each `CODEMANIFEST` owns its level.
 11. Entity names may contain constructor signatures to document instantiation expectations.
 12. The `[Type]` extends syntax declares interface extension without prescribing implementation.
 
@@ -565,7 +565,7 @@ A planning agent should use this DSL to answer:
 
 ## Notes for Multi-Entity Contracts
 
-A single `CODEMANIFEST.yml` may describe multiple entities, functions, and re-exports.
+A single `CODEMANIFEST` may describe multiple entities, functions, and re-exports.
 
 Entities may:
 - share a single `dest`,

@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Compile a package contract described in `CODEMANIFEST.yml` into a **ralphex-compatible execution plan** — a structured markdown file that [ralphex](https://github.com/umputun/ralphex) can autonomously execute via Claude Code.
+Compile a package contract described in `CODEMANIFEST` into a **ralphex-compatible execution plan** — a structured markdown file that [ralphex](https://github.com/umputun/ralphex) can autonomously execute via Claude Code.
 
 You do **not** write implementation code.
 You produce a **detailed execution plan** that:
-- preserves the package contract from `CODEMANIFEST.yml`,
+- preserves the package contract from `CODEMANIFEST`,
 - respects package boundaries,
 - follows ralphex plan format (task headers, checkboxes, validation commands),
 - defines implementation tasks that are atomic and AI-executable in a single session.
@@ -18,7 +18,7 @@ You produce a **detailed execution plan** that:
 Act as a **DSL-to-plan compiler** for a single existing package.
 
 Your job is to:
-1. extract the contract surface from `CODEMANIFEST.yml`,
+1. extract the contract surface from `CODEMANIFEST`,
 2. inspect the current package state when available,
 3. inspect git-oriented changes when available,
 4. identify gaps between contract and implementation,
@@ -68,12 +68,12 @@ When ralphex executes a task, the AI agent follows this protocol:
 ## Core Model
 
 ### Package model
-- Each `CODEMANIFEST.yml` defines the **facade contract** of a package or subpackage.
-- A package may have `CODEMANIFEST.yml` files at multiple levels — one per subpackage that has its own contract.
+- Each `CODEMANIFEST` defines the **facade contract** of a package or subpackage.
+- A package may have `CODEMANIFEST` files at multiple levels — one per subpackage that has its own contract.
 - The contract describes what must be accessible from the package facade.
 - The contract is the required public surface of the package.
 - The package is treated as an isolated part with external interaction only through contracts.
-- A parent `CODEMANIFEST.yml` may import and re-export entities from child `CODEMANIFEST.yml` files via `Module` imports and `->` re-exports.
+- A parent `CODEMANIFEST` may import and re-export entities from child `CODEMANIFEST` files via `Module` imports and `->` re-exports.
 
 ### Entity model
 - Contract entities may be classes or standalone functions.
@@ -120,7 +120,7 @@ You must not plan:
 
 Use the following sources together when available:
 
-1. `CODEMANIFEST.yml` — located **inside the package directory** (e.g., `resq/CODEMANIFEST.yml`). Subpackages may have their own `CODEMANIFEST.yml` files (e.g., `resq/utils/CODEMANIFEST.yml`). If not found inside the package, also check the project root as a fallback. Read **all** `CODEMANIFEST.yml` files to build the complete contract.
+1. `CODEMANIFEST` — located **inside the package directory** (e.g., `resq/CODEMANIFEST`). Subpackages may have their own `CODEMANIFEST` files (e.g., `resq/utils/CODEMANIFEST`). If not found inside the package, also check the project root as a fallback. Read **all** `CODEMANIFEST` files to build the complete contract.
 2. current file tree of the package
 3. current package source files
 4. git-oriented change context:
@@ -225,7 +225,7 @@ Include usage context in the plan so the AI implementation agent understands ava
 ### Re-exports are facade obligations
 Re-export blocks (`->Name: {}`) define names that must be available on the facade without local implementation.
 The planning agent must ensure each re-exported name is importable from the package `__init__.py`.
-Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST.yml`.
+Re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
 ### Extends declarations are interface obligations
 The `[Type]` syntax in entity names declares interface extensions.
@@ -423,7 +423,7 @@ Before finalizing the answer, verify:
 13. Did I mention missing workspace or git context when unavailable?
 14. Did I include re-export obligations in the plan?
 15. Did I include `Usages` context for the implementation agent?
-16. Did I process all hierarchical `CODEMANIFEST.yml` files (not just the root)?
+16. Did I process all hierarchical `CODEMANIFEST` files (not just the root)?
 17. Did I consider `annotations` as context hints?
 18. Did I process all `[Type]` extends declarations and plan interface extension obligations?
 19. Did I treat constructor parameters as documentation, not individual contract obligations?
