@@ -54,7 +54,7 @@ These conventions do **not** authorize:
 - Implementation may be decomposed into additional internal files and modules inside the current package.
 - Internal helper elements may be extracted into dedicated internal modules when this improves clarity, cohesion, reuse, or testability.
 - Public facade code and internal support code should remain clearly distinguishable.
-- Internal decomposition must preserve the contract surface and required `dest` placement.
+- Internal decomposition must preserve the contract surface and required `location` placement.
 
 ### Recommended
 - Group implementation by responsibility so that contract-facing code remains easy to locate.
@@ -63,7 +63,7 @@ These conventions do **not** authorize:
 
 ### Clarification
 There is **no** general rule that one public contract entity must map to one implementation file.
-Multiple contract entities may validly point to the same `dest` if the contract says so.
+Multiple contract entities may validly point to the same `location` if the contract says so.
 
 ---
 
@@ -217,3 +217,64 @@ This file intentionally avoids language-specific rules such as:
 Those should be defined in an additional language-specific conventions file when needed.
 
 This general convention layer defines **structural and traceability expectations**, not language syntax policy.
+
+---
+
+## Ralphex Task Design Conventions
+
+### Task atomicity
+Each task in the plan must be **atomic** — completable by an AI agent in a single Claude Code session without requiring context from other tasks.
+
+Rules:
+- One task covers one logical unit of work (one entity skeleton, one method implementation, one test suite).
+- Tasks sharing the same `location` file may be grouped if they are small enough for one session.
+- A task must not require the AI to read other tasks for implementation context.
+- Each task restates relevant imports, usages, and annotations needed for implementation.
+
+### Task ordering
+Tasks must be ordered **per-package**: each package is completed (coding + testing) before moving to the next.
+
+Within a single package, tasks follow this order:
+1. Infrastructure (package structure, `__init__.py`, re-exports)
+2. Entity skeletons (classes and functions in correct `location` files)
+3. Property implementations
+4. Method implementations (one per method or grouped by entity)
+5. Interface mutations (`Type::` mutation)
+6. Contract tests — **must be placed immediately after the last coding task for this package**
+7. Integration/edge case tests — **also placed within the same package's block**
+
+When the plan covers multiple packages (e.g., subpackages):
+- Process leaf packages first (no child dependencies), then parent packages
+- Respect dependency order: if package A imports from package B, complete B first
+- Each package's test tasks follow directly after its coding tasks
+
+### Checkbox granularity
+Each `- [ ]` checkbox in a task must be:
+- A specific, verifiable action (e.g., "Create file `service.py`", "Implement method `load()` returning `list[Any]`")
+- Verifiable by running a command or checking file existence
+- Not a vague goal (e.g., avoid "Implement the service" without specifics)
+
+### Validation command placement
+- Each task must include at least one inline validation step (a `- [ ]` checkbox with a verification command).
+- The `## Validation Commands` section at the plan level lists all global validation commands.
+- Task-level validation commands verify the specific task outcome.
+- Plan-level validation commands verify overall contract compliance.
+
+### Test-after-coding rule
+Every **coding task** (implementation, infrastructure, entity creation, method implementation) must include two final checkboxes:
+1. `- [ ] Run existing tests to verify no regressions: pytest tests/ -x (skip this step if no test files exist yet)`
+2. `- [ ] If any tests fail, fix the code written in this task (not test code) and re-run tests until they pass`
+
+These steps are part of the coding task itself, not separate tasks. The AI agent runs tests and fixes code within the same context window.
+
+Test-writing tasks (creating new test files) do **not** include these steps — they validate via their own `pytest tests/test_<entity>.py -v` step.
+
+### Self-contained task context
+Each task must include:
+- What contract entities it covers
+- What `location` files are involved
+- Relevant imports and usages
+- Behavioral requirements from descriptions
+- Annotations as prescriptive instructions for the implementation agent
+
+This ensures ralphex can send any single task to Claude Code and the AI has sufficient context to implement it correctly.
