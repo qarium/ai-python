@@ -112,7 +112,8 @@ You must not plan:
 - expansion of the system boundary beyond the current package,
 - replacement of contract entities with internal-only abstractions,
 - violation of facade accessibility requirements,
-- ignoring `location`.
+- ignoring `location`,
+- modifying `CODEMANIFEST` files — they are **read-only** contract definitions. The implementation agent must adapt the code to match the contract, never the other way around.
 
 ---
 
@@ -273,6 +274,8 @@ Each task follows this structure:
 
 <Context for the AI agent: what this task does, which contract entities it covers, any relevant imports/usages/annotations>
 
+**CRITICAL: `CODEMANIFEST` files are read-only contract definitions. Do NOT modify them. If the implementation does not match the contract, fix the implementation — never fix the contract.**
+
 - [ ] <implementation step 1 — specific, actionable>
 - [ ] <implementation step 2 — specific, actionable>
 - [ ] <implementation step N>
@@ -317,6 +320,7 @@ Test-writing tasks do not include this step — they create the tests themselves
 - Tasks without validation commands
 - Tasks that assume context from previous tasks without restating it
 - Tasks that are too large for a single AI session
+- Tasks that modify or suggest modifying `CODEMANIFEST` files — the contract is read-only
 
 ---
 
@@ -468,6 +472,8 @@ Before finalizing the answer, verify:
 20. Are tasks ordered correctly per-package (coding tasks → tests for each package, not all tests at the end)?
 21. Does the `## Validation Commands` section include all necessary verification commands?
 22. Does every coding task include the test-run steps at the end (run existing tests, fix if failed)?
+23. Does the plan explicitly instruct the AI agent NOT to modify `CODEMANIFEST` files (read-only contract)?
+24. Does the plan include no tasks that modify `CODEMANIFEST` files?
 
 If any answer is "no", revise the plan before returning it.
 

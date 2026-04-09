@@ -102,6 +102,8 @@ Compare the contract with the current visible package state:
 
 <Context paragraph: what this task does, which contract entities it covers, relevant imports/usages/annotations. Provide enough context for an AI agent to implement this task independently.>
 
+**CRITICAL: `CODEMANIFEST` files are read-only contract definitions. Do NOT modify them. If the implementation does not match the contract, fix the implementation — never fix the contract.**
+
 - [ ] <specific implementation step 1 — e.g., "Create file `path/to/location.py`">
 - [ ] <specific implementation step 2 — e.g., "Implement class `EntityName` with constructor accepting `(param: Type)`">
 - [ ] <specific implementation step 3 — e.g., "Add `EntityName` to `package/__init__.py`">
@@ -158,5 +160,6 @@ Continue for all coding tasks **for this package**.
 - [ ] Contract tests cover facade, API, and behavior
 - [ ] Internal tests exist where internal decomposition requires them
 - [ ] No package boundary has been expanded
+- [ ] No `CODEMANIFEST` files were modified (read-only contract)
 - [ ] All validation commands pass
 - [ ] Assumptions and open questions are explicitly documented
