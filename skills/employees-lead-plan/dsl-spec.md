@@ -45,7 +45,8 @@ A typical file may look like this:
 
 ```yaml
 Imports:
-  - Type: Object
+  - Types:
+      - Object
     From: "identity"
 
 Usages:
@@ -104,19 +105,25 @@ Example:
 
 ```yaml
 Imports:
-  - Type: Object
-    From: "identity"
-  - Type: Helper
+  - Types:
+      - Object
+      - Helper
     From: "resq/utils"
+  - Types:
+      - DocumentRoot AS DocumentRootNode
+      - HeaderNode
+    From: "goga/codemanifest/nodes"
 ```
 
 Semantics:
-- **`Type` import**: a type from another `CODEMANIFEST` used in signatures but not locally defined.
-  - `Type` is the type name as defined in the source `CODEMANIFEST`.
-  - `From` is the package directory path (relative to the working directory) containing the `CODEMANIFEST` where the type is defined. The `CODEMANIFEST` file name itself is not included — it is implied. Path separator must be `/` (filesystem path), not `.` (Python package notation). For example: `"resq/utils"`, not `"resq.utils"`.
+- **`Types` import group**: a list of types from another `CODEMANIFEST` used in signatures but not locally defined.
+  - `Types` is a list of type names. Each type name uses the name as defined in the source `CODEMANIFEST`.
+  - An optional alias can be specified using `AS`: `TypeName AS AliasName`. The alias is the local name used in this contract instead of the original type name.
+  - `From` is the package directory path (relative to the working directory) containing the `CODEMANIFEST` where the types are defined. The `CODEMANIFEST` file name itself is not included — it is implied. Path separator must be `/` (filesystem path), not `.` (Python package notation). For example: `"resq/utils"`, not `"resq.utils"`.
 - Imported types are **internal contract dependencies** — they come from other packages within the same project.
 - External library types are described in `Usages`, not in `Imports`.
 - Importing a type does **not** automatically re-export it. Use the re-export syntax to make it available on the facade.
+- Types from the same `From` source should be grouped in a single entry. Each entry has exactly one `From` and one `Types` list.
 
 ### `Usages`
 A general-purpose section for attaching **any external knowledge** the implementation agent needs. `Usages` is not limited to libraries or types — it is an open mechanism for providing context from outside the package.
@@ -135,16 +142,16 @@ Example:
 
 ```yaml
 Usages:
-  - pydantic: .specs/pydantic.md
-  - structures: .specs/structures.md
-  - pattern: |
-       Annotation describing how to use the `pattern` alias.
-  - requests: |
-       External HTTP library. Import `HTTPError` for error handling
-       and `Response` for return types in method signatures.
-       Install: `pip install requests`.
-  - rust_bridge: .specs/rust_bridge.md
-  - grpc_api: .specs/grpc_api.md
+  pydantic: .specs/pydantic.md
+  structures: .specs/structures.md
+  pattern: |
+    Annotation describing how to use the `pattern` alias.
+  requests: |
+    External HTTP library. Import `HTTPError` for error handling
+    and `Response` for return types in method signatures.
+    Install: `pip install requests`.
+  rust_bridge: .specs/rust_bridge.md
+  grpc_api: .specs/grpc_api.md
 ```
 
 Semantics:
@@ -193,12 +200,13 @@ Example:
 
 ```yaml
 Imports:
-  - Type: Object
+  - Types:
+      - Object
     From: "kotlin"
 
 Usages:
-  - requests: |
-       External HTTP library. Provides `HTTPError` for error handling.
+  requests: |
+    External HTTP library. Provides `HTTPError` for error handling.
 ---
 
 "->Object": {}
@@ -309,13 +317,14 @@ Example:
 
 ```yaml
 Imports:
-  - Type: Object
+  - Types:
+      - Object
     From: "identity"
 
 Usages:
-  - pydantic: |
-      Data validation library. Import `BaseModel` for base class inheritance.
-      Import: `from pydantic import BaseModel`
+  pydantic: |
+    Data validation library. Import `BaseModel` for base class inheritance.
+    Import: `from pydantic import BaseModel`
 
 ---
 

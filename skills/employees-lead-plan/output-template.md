@@ -40,7 +40,7 @@ Repeat for every contract entity.
 
 For each re-export block (`->Name: {}` or `->usage.Type: {}`):
 - Name:
-- Source: corresponding `Imports` entry (for internal types) or `Usages` entry (for external types)
+- Source: corresponding `Imports` entry (for internal types, resolved from `Types` list with optional `AS` aliases) or `Usages` entry (for external types)
 - Facade obligation: must be importable from `__init__.py`
 - Hierarchy constraint (for `Imports` only): source must be at a lower filesystem level
 

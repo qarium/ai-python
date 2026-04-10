@@ -92,7 +92,7 @@ Analyze all facade entities to detect external dependencies and external knowled
 #### Import detection
 For each type used in signatures that is not locally defined:
 - Determine whether it comes from another `CODEMANIFEST` contract (e.g., a type defined in a sibling package within the same project).
-- Record each as an `Imports` entry with `Type` kind.
+- Record each as an `Imports` entry. Group types from the same source under one `Types:` list with a shared `From:`. If a type needs a local alias, use `AS` syntax (e.g., `DocumentRoot AS DocumentRootNode`).
 - **External library types** (e.g., `requests.Response`, `pydantic.BaseModel`) must **not** be recorded in `Imports`. They are recorded in `Usages` instead.
 
 #### External resource detection
@@ -277,7 +277,9 @@ Assemble each `CODEMANIFEST` file with the following structure (in order):
 
 ```yaml
 Imports:
-  - Type: SomeType
+  - Types:
+      - SomeType
+      - AnotherType AS AliasName
     From: "other_package"
 
 Usages:
@@ -363,7 +365,7 @@ After assembling all `CODEMANIFEST` files and before writing:
 
 | Category | Name | Source |
 |----------|------|--------|
-| Import (Type) | User | identity |
+| Import (Types) | User | identity |
 | Usage (external type) | HTTPError | requests |
 | Usage (library) | requests | pyproject.toml |
 | Usage (pattern) | pydantic | .specs/pydantic.md |

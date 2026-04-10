@@ -8,7 +8,8 @@ This example shows how a `CODEMANIFEST` DSL is compiled into a ralphex-compatibl
 
 ```yaml
 Imports:
-  - Type: User
+  - Types:
+      - User
     From: "identity"
 
 Usages:

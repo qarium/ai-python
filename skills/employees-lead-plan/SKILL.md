@@ -180,7 +180,7 @@ The DSL compiles into plan tasks as follows:
 
 | DSL Element | Plan Output |
 |---|---|
-| `Type Import` | Context section — internal type from another `CODEMANIFEST`, must be available in signatures |
+| `Types Import` | Context section — internal type(s) from another `CODEMANIFEST`, grouped under one `From`. Types may use `AS` alias syntax (e.g., `DocumentRoot AS DocumentRootNode`). Aliased names must be used in signatures and re-exports. |
 | `Usages` | Context section with implementation guidance for the AI agent, including external library types |
 | `Annotations` | Context hints embedded in task descriptions |
 | `->Re-exports` | Task: ensure name importable from package `__init__.py` |
@@ -226,8 +226,10 @@ These requirements must appear in the task instructions so the AI implementation
 
 ### Imports are internal contract dependencies
 Imports define internal contract dependencies — types from other `CODEMANIFEST` files in the same project.
+Types are grouped under `Types:` lists with a shared `From:` source. Each type may use `AS` alias syntax (e.g., `DocumentRoot AS DocumentRootNode`) to define a local name.
 External library types are described in `Usages`.
 Do not locally redefine imported contract types unless the contract explicitly requires it.
+When a type has an alias, use the alias name in signatures, re-exports, and `Type::` mutations.
 Include import context in task descriptions.
 
 ### Usages are implementation context and external dependencies
@@ -239,13 +241,13 @@ Include usage context in the plan so the AI implementation agent understands ava
 ### Re-exports are facade obligations
 Re-export blocks (`->Name: {}` for internal types, `->usage.Type: {}` for external types) define names that must be available on the facade without local implementation.
 The planning agent must ensure each re-exported name is importable from the package `__init__.py`.
-Re-exports can reference names from `Imports` (internal) or `Usages` (external). Re-exporting from `Usages` is allowed but not recommended — prefer re-exporting internal types from `Imports`. In the case of `Imports`, re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
+Re-exports can reference names from `Imports` (internal) or `Usages` (external). When a type has an `AS` alias in `Imports`, the re-export uses the alias name (e.g., `->DocumentRootNode` for `DocumentRoot AS DocumentRootNode`). Re-exporting from `Usages` is allowed but not recommended — prefer re-exporting internal types from `Imports`. In the case of `Imports`, re-exports can only embed entities from files at lower levels in the filesystem hierarchy relative to the current `CODEMANIFEST`.
 
 When planning re-exports from child CODEMANIFEST files, import specific objects — not whole subpackages or modules. For example, plan `from package.http import HTTPClient`, not `import package.http`. The DSL does not have a `Module` concept; every facade-level name is an individual entity or re-export.
 
 ### Mutation declarations are interface obligations
 The `Type::` syntax in entity names declares interface mutations — the entity extends an existing type. The mechanism (inheritance, composition, etc.) is not prescribed by the DSL. See `dsl-spec.md` → *Mutation Syntax `Type::`* for the conceptual explanation.
-- `TypeName::` — mutates an existing type. Types from `Imports` use simple names (e.g., `Object::`). Types from `Usages` use qualified names: `usage.Type::` (e.g., `pydantic.BaseModel::`).
+- `TypeName::` — mutates an existing type. Types from `Imports` use simple names — the alias name if one is defined via `AS` (e.g., `DocumentRootNode::` for `DocumentRoot AS DocumentRootNode`), or the original type name otherwise (e.g., `Object::`). Types from `Usages` use qualified names: `usage.Type::` (e.g., `pydantic.BaseModel::`).
 - Multiple `Type::` segments indicate multiple mutations. Read left to right as layers of extension: `A::B::Cls()` means Cls extends B which extends A.
 The planning agent must create tasks for implementing the mutation mechanism.
 
